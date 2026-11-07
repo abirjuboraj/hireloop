@@ -134,8 +134,8 @@ export default function SignUpPage() {
                 type="button"
                 onClick={() => setRole("seeker")}
                 className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${role === "seeker"
-                    ? "bg-brand text-white shadow"
-                    : "text-white/60 hover:text-white"
+                  ? "bg-brand text-white shadow"
+                  : "text-white/60 hover:text-white"
                   }`}
               >
                 <User className="size-3.5" />
@@ -145,8 +145,8 @@ export default function SignUpPage() {
                 type="button"
                 onClick={() => setRole("recruiter")}
                 className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${role === "recruiter"
-                    ? "bg-brand text-white shadow"
-                    : "text-white/60 hover:text-white"
+                  ? "bg-brand text-white shadow"
+                  : "text-white/60 hover:text-white"
                   }`}
               >
                 <Building2 className="size-3.5" />
@@ -156,8 +156,8 @@ export default function SignUpPage() {
                 type="button"
                 onClick={() => setRole("admin")}
                 className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${role === "admin"
-                    ? "bg-brand text-white shadow"
-                    : "text-white/60 hover:text-white"
+                  ? "bg-brand text-white shadow"
+                  : "text-white/60 hover:text-white"
                   }`}
               >
                 <ShieldCheck className="size-3.5" />
@@ -167,11 +167,6 @@ export default function SignUpPage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {errorMessage && (
-              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
-                {errorMessage}
-              </div>
-            )}
 
             {/* OAuth Quick Options */}
             <div className="grid grid-cols-2 gap-3">
@@ -360,6 +355,11 @@ export default function SignUpPage() {
                 {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
+            {errorMessage && (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+                {errorMessage}
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="flex justify-center border-t border-white/10 pt-4 text-xs text-white/60">

@@ -2,10 +2,23 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Menu } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { LogOut, Menu, User as UserIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Sheet,
   SheetClose,
@@ -16,6 +29,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { signOut, useSession } from "@/lib/auth-client"
 
 const navLinks = [
   { href: "/browse-jobs", label: "Browse Jobs" },
@@ -25,6 +39,25 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { data: session } = useSession()
+
+  const user = session?.user
+
+  // Generate fallback initials
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "HL"
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.refresh()
+  }
 
   return (
     <header className="absolute top-4 left-1/2 z-50 w-[min(1200px,94vw)] -translate-x-1/2">
@@ -73,21 +106,60 @@ export function Navbar() {
           {/* Divider */}
           <div aria-hidden="true" className="h-5 w-px bg-white/10" />
 
-          <div className="flex items-center gap-3">
-            <Link href="/sign-in">
-              <Button
-                variant="ghost"
-                className="h-10 rounded-lg px-4 text-sm font-semibold text-white/90 hover:bg-white/5 hover:text-white"
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button className="flex items-center gap-3 rounded-full py-1 pr-3 pl-1 outline-none transition-colors hover:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-white/30">
+                    <Avatar className="size-8 border border-white/20">
+                      {user.image && (
+                        <AvatarImage src={user.image} alt={user.name || "User"} />
+                      )}
+                      <AvatarFallback className="bg-brand text-xs font-semibold text-white">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium text-white/90">
+                      {user.name}
+                    </span>
+                  </button>
+                }
+              />
+              <DropdownMenuContent
+                align="end"
+                className="w-56 border border-white/10 bg-[#0e0e12]/95 p-1 text-white backdrop-blur-xl shadow-2xl"
               >
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/sign-up">
-              <Button className="h-10 rounded-lg border border-white/10 bg-brand px-5 font-instrument text-sm font-medium text-white hover:bg-brand/85">
-                Sign up
-              </Button>
-            </Link>
-          </div>
+                <div className="px-3 py-2">
+                  <p className="text-sm font-medium text-white">{user.name}</p>
+                  <p className="text-xs text-white/50 truncate">{user.email}</p>
+                </div>
+                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-300"
+                >
+                  <LogOut className="mr-2 size-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link href="/sign-in">
+                <Button
+                  variant="ghost"
+                  className="h-10 rounded-lg px-4 text-sm font-semibold text-white/90 hover:bg-white/5 hover:text-white"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/sign-up">
+                <Button className="h-10 rounded-lg border border-white/10 bg-brand px-5 font-instrument text-sm font-medium text-white hover:bg-brand/85">
+                  Sign up
+                </Button>
+              </Link>
+            </div>
+          )}
         </nav>
 
         {/* Mobile menu */}
@@ -123,7 +195,26 @@ export function Navbar() {
                 </SheetTitle>
               </SheetHeader>
 
-              <nav aria-label="Mobile navigation" className="mt-8">
+              {user && (
+                <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                  <Avatar className="size-10 border border-white/20">
+                    {user.image && (
+                      <AvatarImage src={user.image} alt={user.name || "User"} />
+                    )}
+                    <AvatarFallback className="bg-brand text-sm font-semibold text-white">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-white">
+                      {user.name}
+                    </p>
+                    <p className="truncate text-xs text-white/50">{user.email}</p>
+                  </div>
+                </div>
+              )}
+
+              <nav aria-label="Mobile navigation" className="mt-6">
                 <ul className="flex flex-col gap-2">
                   {navLinks.map((link) => {
                     const active = pathname?.startsWith(link.href)
@@ -151,27 +242,40 @@ export function Navbar() {
             </div>
 
             <SheetFooter className="flex flex-col gap-2 border-t border-white/10 pt-4">
-              <SheetClose
-                render={
-                  <Link href="/sign-in" className="w-full">
-                    <Button
-                      variant="outline"
-                      className="h-11 w-full rounded-xl border-white/15 bg-white/5 text-base font-semibold text-white hover:bg-white/10"
-                    >
-                      Sign In
-                    </Button>
-                  </Link>
-                }
-              />
-              <SheetClose
-                render={
-                  <Link href="/sign-up" className="w-full">
-                    <Button className="h-11 w-full rounded-xl bg-brand text-base font-medium text-white hover:bg-brand/85">
-                      Sign up
-                    </Button>
-                  </Link>
-                }
-              />
+              {user ? (
+                <Button
+                  onClick={handleSignOut}
+                  variant="outline"
+                  className="h-11 w-full rounded-xl border-red-500/20 bg-red-500/10 text-base font-semibold text-red-400 hover:bg-red-500/20 hover:text-red-300"
+                >
+                  <LogOut className="mr-2 size-4" />
+                  Sign Out
+                </Button>
+              ) : (
+                <>
+                  <SheetClose
+                    render={
+                      <Link href="/sign-in" className="w-full">
+                        <Button
+                          variant="outline"
+                          className="h-11 w-full rounded-xl border-white/15 bg-white/5 text-base font-semibold text-white hover:bg-white/10"
+                        >
+                          Sign In
+                        </Button>
+                      </Link>
+                    }
+                  />
+                  <SheetClose
+                    render={
+                      <Link href="/sign-up" className="w-full">
+                        <Button className="h-11 w-full rounded-xl bg-brand text-base font-medium text-white hover:bg-brand/85">
+                          Sign up
+                        </Button>
+                      </Link>
+                    }
+                  />
+                </>
+              )}
             </SheetFooter>
           </SheetContent>
         </Sheet>
