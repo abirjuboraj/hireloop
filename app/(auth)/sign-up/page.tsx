@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Building2, Eye, EyeOff, Lock, Mail, User } from "lucide-react"
+import { Building2, Eye, EyeOff, Lock, Mail, ShieldCheck, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -20,9 +20,11 @@ import { Label } from "@/components/ui/label"
 import { signUp } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 
+type UserRole = "seeker" | "recruiter" | "admin"
+
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
-  const [role, setRole] = useState<"seeker" | "employer">("seeker")
+  const [role, setRole] = useState<UserRole>("seeker")
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,8 +32,10 @@ export default function SignUpPage() {
     companyName: "",
     agreeToTerms: false,
   })
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const router = useRouter();
+  const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -50,38 +54,40 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Event handler collects form data
-    const signUpData = {
-      ...formData,
-      role,
+    setErrorMessage(null)
+    setIsLoading(true)
+
+    try {
+      const { data, error } = await signUp.email({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: role,
+        companyName: role === "recruiter" ? formData.companyName : undefined,
+        callbackURL: "/sign-in",
+      })
+
+      if (error) {
+        setErrorMessage(error.message || "Failed to create account. Please try again.")
+        setIsLoading(false)
+        return
+      }
+
+      console.log("Account created successfully with role:", role, data)
+      router.push("/sign-in")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An unexpected error occurred"
+      setErrorMessage(message)
+      setIsLoading(false)
     }
-
-    const { data, error } = await signUp.email({
-      name: signUpData.name as string,
-      email: signUpData.email as string,
-      password: signUpData.password as string,
-      callbackURL: "/sign-in"
-    })
-    console.log(data, error);
-
-
-    if (error) {
-      console.log(error.message)
-      return
-    }
-
-    console.log("Account created:", data)
-
-    router.push("/sign-in")
   }
-
 
   const handleOAuthSignUp = (provider: "google" | "github") => {
     console.log(`OAuth Sign Up with: ${provider}, Role: ${role}`)
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#000] px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#000] px-4 pt-28 pb-12 sm:pt-32">
       {/* Background radial glow */}
       <div
         aria-hidden="true"
@@ -122,34 +128,51 @@ export default function SignUpPage() {
               Join thousands of job seekers and top companies
             </CardDescription>
 
-            {/* Role Switcher Pill */}
-            <div className="mt-4 grid grid-cols-2 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+            {/* 3-Role Switcher */}
+            <div className="mt-4 grid grid-cols-3 rounded-xl border border-white/10 bg-white/[0.03] p-1">
               <button
                 type="button"
                 onClick={() => setRole("seeker")}
-                className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all ${role === "seeker"
-                  ? "bg-brand text-white shadow"
-                  : "text-white/60 hover:text-white"
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${role === "seeker"
+                    ? "bg-brand text-white shadow"
+                    : "text-white/60 hover:text-white"
                   }`}
               >
                 <User className="size-3.5" />
-                Job Seeker
+                Seeker
               </button>
               <button
                 type="button"
-                onClick={() => setRole("employer")}
-                className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all ${role === "employer"
-                  ? "bg-brand text-white shadow"
-                  : "text-white/60 hover:text-white"
+                onClick={() => setRole("recruiter")}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${role === "recruiter"
+                    ? "bg-brand text-white shadow"
+                    : "text-white/60 hover:text-white"
                   }`}
               >
                 <Building2 className="size-3.5" />
-                Employer / Recruiter
+                Recruiter
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("admin")}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${role === "admin"
+                    ? "bg-brand text-white shadow"
+                    : "text-white/60 hover:text-white"
+                  }`}
+              >
+                <ShieldCheck className="size-3.5" />
+                Admin
               </button>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
+            {errorMessage && (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+                {errorMessage}
+              </div>
+            )}
+
             {/* OAuth Quick Options */}
             <div className="grid grid-cols-2 gap-3">
               <Button
@@ -225,8 +248,8 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              {/* Company Name (only if employer) */}
-              {role === "employer" && (
+              {/* Company Name (only if recruiter) */}
+              {role === "recruiter" && (
                 <div className="space-y-1.5 animate-in fade-in duration-200">
                   <Label
                     htmlFor="companyName"
@@ -331,9 +354,10 @@ export default function SignUpPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="mt-2 h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white shadow-lg hover:bg-brand/90 cursor-pointer"
+                disabled={isLoading}
+                className="mt-2 h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white shadow-lg hover:bg-brand/90 disabled:opacity-50 cursor-pointer"
               >
-                Create Account
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
           </CardContent>

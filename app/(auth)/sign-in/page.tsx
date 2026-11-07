@@ -64,7 +64,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#000] px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#000] px-4 pt-28 pb-12 sm:pt-32">
       {/* Background radial glow */}
       <div
         aria-hidden="true"
@@ -243,7 +243,7 @@ export default function SignInPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white shadow-lg hover:bg-brand/90"
+                className="h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white shadow-lg hover:bg-brand/90 cursor-pointer"
               >
                 Sign In
               </Button>

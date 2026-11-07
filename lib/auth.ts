@@ -13,6 +13,21 @@ export const auth = betterAuth({
     enabled: true,
     autoSignIn: true,
   },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "seeker",
+        input: true,
+      },
+      companyName: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+    },
+  },
 });
 
 export type Auth = typeof auth;
