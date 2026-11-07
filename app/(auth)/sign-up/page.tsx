@@ -17,6 +17,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { signUp } from "@/lib/auth-client"
+import { useRouter } from "next/navigation"
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -28,6 +30,8 @@ export default function SignUpPage() {
     companyName: "",
     agreeToTerms: false,
   })
+
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -44,15 +48,33 @@ export default function SignUpPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     // Event handler collects form data
-    const submissionData = {
+    const signUpData = {
       ...formData,
       role,
     }
-    console.log("Sign Up Submitted:", submissionData)
+
+    const { data, error } = await signUp.email({
+      name: signUpData.name as string,
+      email: signUpData.email as string,
+      password: signUpData.password as string,
+      callbackURL: "/sign-in"
+    })
+    console.log(data, error);
+
+
+    if (error) {
+      console.log(error.message)
+      return
+    }
+
+    console.log("Account created:", data)
+
+    router.push("/sign-in")
   }
+
 
   const handleOAuthSignUp = (provider: "google" | "github") => {
     console.log(`OAuth Sign Up with: ${provider}, Role: ${role}`)
@@ -105,11 +127,10 @@ export default function SignUpPage() {
               <button
                 type="button"
                 onClick={() => setRole("seeker")}
-                className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all ${
-                  role === "seeker"
-                    ? "bg-brand text-white shadow"
-                    : "text-white/60 hover:text-white"
-                }`}
+                className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all ${role === "seeker"
+                  ? "bg-brand text-white shadow"
+                  : "text-white/60 hover:text-white"
+                  }`}
               >
                 <User className="size-3.5" />
                 Job Seeker
@@ -117,11 +138,10 @@ export default function SignUpPage() {
               <button
                 type="button"
                 onClick={() => setRole("employer")}
-                className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all ${
-                  role === "employer"
-                    ? "bg-brand text-white shadow"
-                    : "text-white/60 hover:text-white"
-                }`}
+                className={`flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all ${role === "employer"
+                  ? "bg-brand text-white shadow"
+                  : "text-white/60 hover:text-white"
+                  }`}
               >
                 <Building2 className="size-3.5" />
                 Employer / Recruiter
@@ -311,7 +331,7 @@ export default function SignUpPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="mt-2 h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white shadow-lg hover:bg-brand/90"
+                className="mt-2 h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white shadow-lg hover:bg-brand/90 cursor-pointer"
               >
                 Create Account
               </Button>

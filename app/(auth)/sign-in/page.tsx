@@ -17,6 +17,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { signIn } from "@/lib/auth-client"
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -41,10 +42,21 @@ export default function SignInPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Event handler collects form data
-    console.log("Sign In Submitted:", formData)
+
+    const { data, error } = await signIn.email({
+      email: formData.email as string,
+      password: formData.password as string,
+      rememberMe: true,
+      callbackURL: "/"
+    })
+
+    if (error) {
+      console.log(error.message)
+    }
+
+
   }
 
   const handleOAuthSignIn = (provider: "google" | "github") => {
