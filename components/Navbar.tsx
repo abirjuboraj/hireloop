@@ -27,21 +27,21 @@ export function Navbar() {
   const pathname = usePathname()
 
   return (
-    <header className="px-4 pt-6 md:px-15">
-      <div className="mx-auto flex h-18.5 w-full max-w-330 items-center justify-between rounded-2xl bg-surface pr-2 pl-4 md:pl-6">
+    <header className="absolute top-4 left-1/2 z-50 w-[min(1200px,94vw)] -translate-x-1/2">
+      <div className="flex h-16 w-full items-center justify-between rounded-[14px] border border-white/[0.06] bg-[rgba(20,20,22,0.6)] px-4 backdrop-blur-[12px] sm:px-6">
         {/* Logo */}
         <Link
           href="/"
           aria-label="HireLoop home"
-          className="shrink-0 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-white/30"
+          className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white/30"
         >
           <Image
             src="/logo.png"
             alt="HireLoop"
             width={794}
             height={224}
-            preload
-            className="h-11 w-auto"
+            priority
+            className="h-8 w-auto sm:h-9"
           />
         </Link>
 
@@ -50,7 +50,7 @@ export function Navbar() {
           aria-label="Main navigation"
           className="hidden h-full items-center gap-6 pl-8 lg:flex"
         >
-          <ul className="flex items-center gap-10">
+          <ul className="flex items-center gap-8">
             {navLinks.map((link) => {
               const active = pathname?.startsWith(link.href)
               return (
@@ -59,8 +59,8 @@ export function Navbar() {
                     href={link.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "text-base leading-[1.8] tracking-[-0.2px] whitespace-nowrap text-white underline-offset-4 transition-colors hover:underline",
-                      active && "font-semibold underline"
+                      "text-sm tracking-[-0.2px] whitespace-nowrap text-white/80 transition-colors hover:text-white",
+                      active && "font-semibold text-white"
                     )}
                   >
                     {link.label}
@@ -71,20 +71,20 @@ export function Navbar() {
           </ul>
 
           {/* Divider */}
-          <div aria-hidden="true" className="h-6 w-px bg-divider/40" />
+          <div aria-hidden="true" className="h-5 w-px bg-white/10" />
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Link href="/sign-in">
               <Button
                 variant="ghost"
-                className="h-13 rounded-xl bg-transparent px-6 text-lg font-semibold text-brand shadow-[inset_0_3px_10px_rgba(255,255,255,0.2),0_2px_4px_rgba(0,0,0,0.03)] hover:bg-white/5 hover:text-brand"
+                className="h-10 rounded-lg px-4 text-sm font-semibold text-white/90 hover:bg-white/5 hover:text-white"
               >
                 Sign In
               </Button>
             </Link>
-            <Link href="/get-started">
-              <Button className="h-13 rounded-xl border border-[#090A15]/10 bg-brand px-6 font-instrument text-lg font-medium text-white shadow-[inset_0_3px_10px_rgba(255,255,255,0.2),0_2px_4px_rgba(0,0,0,0.03)] hover:bg-brand/85">
-                Get Started
+            <Link href="/sign-up">
+              <Button className="h-10 rounded-lg border border-white/10 bg-brand px-5 font-instrument text-sm font-medium text-white hover:bg-brand/85">
+                Sign up
               </Button>
             </Link>
           </div>
@@ -98,62 +98,80 @@ export function Navbar() {
                 variant="ghost"
                 size="icon"
                 aria-label="Open navigation menu"
-                className="text-white hover:bg-white/5 hover:text-white lg:hidden"
-              />
+                className="size-9 rounded-lg border border-white/10 bg-white/5 text-white hover:bg-white/10 lg:hidden"
+              >
+                <Menu className="size-5" />
+              </Button>
             }
-          >
-            <Menu className="size-7" />
-            <span className="sr-only">Open navigation menu</span>
-          </SheetTrigger>
-
+          />
           <SheetContent
-            side="top"
-            showCloseButton={true}
-            className="rounded-b-2xl bg-surface pb-6 text-white"
+            side="right"
+            className="flex flex-col justify-between border-l border-white/10 bg-[#0c0c0e]/95 p-6 backdrop-blur-xl"
           >
-            <SheetHeader className="px-6 py-5">
-              <SheetTitle className="sr-only">HireLoop navigation</SheetTitle>
-            </SheetHeader>
+            <div>
+              <SheetHeader className="text-left">
+                <SheetTitle>
+                  <Link href="/" aria-label="HireLoop home" className="inline-block">
+                    <Image
+                      src="/logo.png"
+                      alt="HireLoop"
+                      width={794}
+                      height={224}
+                      className="h-8 w-auto"
+                    />
+                  </Link>
+                </SheetTitle>
+              </SheetHeader>
 
-            <ul className="flex flex-col divide-y divide-white/10 px-6">
-              {navLinks.map((link) => {
-                const active = pathname?.startsWith(link.href)
-                return (
-                  <li key={link.href}>
-                    <SheetClose
-                      nativeButton={false}
-                      render={
-                        <Link
-                          href={link.href}
-                          aria-current={active ? "page" : undefined}
-                          className={cn(
-                            "text-base leading-[1.8] tracking-[-0.2px] text-white underline-offset-4 transition-colors hover:underline",
-                            active && "font-semibold underline"
-                          )}
+              <nav aria-label="Mobile navigation" className="mt-8">
+                <ul className="flex flex-col gap-2">
+                  {navLinks.map((link) => {
+                    const active = pathname?.startsWith(link.href)
+                    return (
+                      <li key={link.href}>
+                        <SheetClose
+                          render={
+                            <Link
+                              href={link.href}
+                              aria-current={active ? "page" : undefined}
+                              className={cn(
+                                "flex items-center rounded-lg px-3 py-2.5 text-base text-white/80 transition-colors hover:bg-white/5 hover:text-white",
+                                active && "bg-white/10 font-semibold text-white"
+                              )}
+                            >
+                              {link.label}
+                            </Link>
+                          }
                         />
-                      }
-                    >
-                      {link.label}
-                    </SheetClose>
-                  </li>
-                )
-              })}
-            </ul>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </nav>
+            </div>
 
-            <SheetFooter className="mt-6 flex-col gap-3 px-6">
-              <Link href="/sign-in" className="w-full">
-                <Button
-                  variant="ghost"
-                  className="h-13 w-full rounded-xl bg-transparent px-6 text-lg font-semibold text-brand shadow-[inset_0_3px_10px_rgba(255,255,255,0.2),0_2px_4px_rgba(0,0,0,0.03)] hover:bg-white/5 hover:text-brand"
-                >
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/get-started" className="w-full">
-                <Button className="h-13 w-full rounded-xl border border-[#090A15]/10 bg-brand px-6 font-instrument text-lg font-medium text-white hover:bg-brand/85">
-                  Get Started
-                </Button>
-              </Link>
+            <SheetFooter className="flex flex-col gap-2 border-t border-white/10 pt-4">
+              <SheetClose
+                render={
+                  <Link href="/sign-in" className="w-full">
+                    <Button
+                      variant="outline"
+                      className="h-11 w-full rounded-xl border-white/15 bg-white/5 text-base font-semibold text-white hover:bg-white/10"
+                    >
+                      Sign In
+                    </Button>
+                  </Link>
+                }
+              />
+              <SheetClose
+                render={
+                  <Link href="/sign-up" className="w-full">
+                    <Button className="h-11 w-full rounded-xl bg-brand text-base font-medium text-white hover:bg-brand/85">
+                      Sign up
+                    </Button>
+                  </Link>
+                }
+              />
             </SheetFooter>
           </SheetContent>
         </Sheet>

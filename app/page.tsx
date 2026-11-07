@@ -1,9 +1,11 @@
 import { Navbar } from "@/components/Navbar"
+import { Hero } from "@/components/Hero"
 
 export default function Page() {
   return (
-    <div className="bg-[#1E1E1E] min-h-svh flex flex-col">
+    <main className="relative min-h-screen bg-[#000]">
       <Navbar />
-    </div>
+      <Hero />
+    </main>
   )
 }
