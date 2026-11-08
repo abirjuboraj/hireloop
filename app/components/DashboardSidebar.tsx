@@ -28,6 +28,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { signOut, useSession } from "@/lib/auth-client"
+import { cn } from "@/lib/utils"
 import { resolveUserRole, type MenuItem, type UserRole } from "@/lib/types"
 
 const menuItemsByRole: Record<UserRole, MenuItem[]> = {
@@ -69,6 +70,12 @@ export default function DashboardSidebar() {
   const user = session?.user
   const role = resolveUserRole(user?.role)
   const menuItems = menuItemsByRole[role]
+
+  // Only the longest matching URL is active, so nested pages (e.g. jobs/new)
+  // don't also highlight Dashboard / Manage Jobs
+  const activeUrl = [...menuItems]
+    .filter((item) => pathname === item.url || pathname.startsWith(item.url + "/"))
+    .sort((a, b) => b.url.length - a.url.length)[0]?.url
   const cardTitle = role === "seeker" ? roleLabels.seeker.title : (user?.name ?? roleLabels[role].title)
   const showCardInFooter = role === "admin"
 
@@ -85,12 +92,27 @@ export default function DashboardSidebar() {
         <SidebarGroup>
           <SidebarMenu>
             {menuItems.map((item) => {
-              const isActive =
-                item.url === "/dashboard" ? pathname === item.url : pathname.startsWith(item.url)
+              const isActive = item.url === activeUrl
 
               return (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton isActive={isActive} tooltip={item.name} render={<Link href={item.url} />}>
+                <SidebarMenuItem key={item.url} className="relative">
+                  {/* Brand accent bar */}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute top-1/2 left-0 h-4 w-[3px] -translate-y-1/2 rounded-full bg-brand transition-opacity duration-200",
+                      isActive ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <SidebarMenuButton
+                    isActive={isActive}
+                    tooltip={item.name}
+                    render={<Link href={item.url} />}
+                    className={cn(
+                      isActive &&
+                        "hover:bg-brand/20 data-active:bg-brand/15 data-active:text-foreground [&>svg]:text-brand"
+                    )}
+                  >
                     <item.icon />
                     <span>{item.name}</span>
                   </SidebarMenuButton>
