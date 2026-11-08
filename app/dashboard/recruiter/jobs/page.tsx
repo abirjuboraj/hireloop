@@ -33,10 +33,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { type JobPost } from "@/lib/types"
+import { JobPost } from "@/lib/types"
 import { useEffect, useState } from "react"
 import { getJobs } from "@/lib/api/jobs"
 import DeleteDialog from "@/app/components/DeleteDialog"
+import { deleteJob } from "@/lib/actions/jobs"
+import { toast } from "@/components/ui/toast"
+import { useRouter } from "next/navigation"
 
 const categoryMeta: Record<string, { icon: typeof Code2; color: string }> = {
   "Engineering, Tech": { icon: Code2, color: "text-blue-400" },
@@ -66,6 +69,7 @@ export default function ManageJobsPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedJob, setSelectedJob] = useState<JobPost | null>(null)
 
+  const router = useRouter()
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -80,16 +84,31 @@ export default function ManageJobsPage() {
     fetchJobs()
   }, [])
 
-  const handleDeleteConfirm = () => {
-    if (!selectedJob) return
+  const handleDeleteConfirm = async () => {
+  if (!selectedJob) return;
 
-    console.log("Deleting job:", selectedJob)
+  try {
+    const res = await deleteJob(selectedJob._id);
 
-    // TODO: Call delete API here
+    if (res && res.deletedCount > 0) {
+      setFetchedJobs((prev) =>
+        prev.filter((job: JobPost) => job._id !== selectedJob._id)
+      );
 
-    setIsDeleteOpen(false)
-    setSelectedJob(null)
+      toast.add({
+        title: "Job deleted",
+        description: `The job "${selectedJob.title}" has been successfully deleted.`,
+      });
+
+      router.refresh();
+    }
+  } catch (error) {
+    console.error("Failed to delete job:", error);
+  } finally {
+    setIsDeleteOpen(false);
+    setSelectedJob(null);
   }
+};
   return (
     <div className="w-full max-w-6xl px-4 py-6 md:px-8 md:py-8">
       {/* Page header */}

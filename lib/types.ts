@@ -44,8 +44,10 @@ export type JobForm = {
   qualifications: string
 }
 
+
 /** A stored job post shown in the recruiter's Manage Jobs table (extends the create form). */
 export type JobPost = JobForm & {
+  _id:string
   applicants: number
   postedAgo: string
 }

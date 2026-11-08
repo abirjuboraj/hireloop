@@ -17,3 +17,16 @@ export const createJob = async( data: JobForm) => {
         console.log("Error creating job:", error);
     }
 }
+
+
+export const deleteJob = async(jobId:string)=> {
+    try {
+        const res = await fetch(`${AUTH_URL}/jobs/${jobId}`,{
+            method: "DELETE",
+        });
+
+        return res.json();
+    } catch (error) {
+        console.log("Error deleting job:", error);
+    }
+}
