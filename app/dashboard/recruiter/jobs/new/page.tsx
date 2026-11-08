@@ -29,6 +29,7 @@ import {
   type JobForm,
 } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { createJob } from "@/lib/actions/jobs"
 
 const initialForm: JobForm = {
   title: "",
@@ -58,10 +59,11 @@ export default function PostJobPage() {
   const setField = <K extends keyof JobForm>(key: K, value: JobForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }))
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    // TODO: connect to the jobs API
-    console.log("Publishing job:", form)
+  const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+const result = await createJob(form);
+    console.log(result);
   }
 
   return (
