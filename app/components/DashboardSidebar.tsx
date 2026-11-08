@@ -8,6 +8,7 @@ import {
   Bookmark,
   Briefcase,
   Building2,
+  CirclePlus,
   FileText,
   LayoutGrid,
   LogOut,
@@ -31,7 +32,7 @@ import { resolveUserRole, type MenuItem, type UserRole } from "@/lib/types"
 
 const menuItemsByRole: Record<UserRole, MenuItem[]> = {
   seeker: [
-    { name: "Dashboard", url: "/dashboard", icon: LayoutGrid },
+    { name: "Dashboard", url: "/dashboard/seeker", icon: LayoutGrid },
     { name: "Jobs", url: "/dashboard/jobs", icon: Briefcase },
     { name: "Saved Jobs", url: "/dashboard/saved-jobs", icon: Bookmark },
     { name: "Applications", url: "/dashboard/applications", icon: FileText },
@@ -39,13 +40,14 @@ const menuItemsByRole: Record<UserRole, MenuItem[]> = {
     { name: "Settings", url: "/dashboard/settings", icon: Settings },
   ],
   recruiter: [
-    { name: "Dashboard", url: "/dashboard", icon: LayoutGrid },
-    { name: "Manage Jobs", url: "/dashboard/manage-jobs", icon: Briefcase },
-    { name: "Applications", url: "/dashboard/applications", icon: FileText },
-    { name: "Settings", url: "/dashboard/settings", icon: Settings },
+    { name: "Dashboard", url: "/dashboard/recruiter", icon: LayoutGrid },
+    { name: "Add Job", url: "/dashboard/recruiter/jobs/new", icon: CirclePlus },
+    { name: "Manage Jobs", url: "/dashboard/recruiter/jobs", icon: Briefcase },
+    { name: "Applications", url: "/dashboard/recruiter/applications", icon: FileText },
+    { name: "Settings", url: "/dashboard/recruiter/settings", icon: Settings },
   ],
   admin: [
-    { name: "Dashboard", url: "/dashboard", icon: LayoutGrid },
+    { name: "Dashboard", url: "/dashboard/admin", icon: LayoutGrid },
     { name: "Users", url: "/dashboard/users", icon: Users },
     { name: "Companies", url: "/dashboard/companies", icon: Building2 },
     { name: "Jobs", url: "/dashboard/jobs", icon: Briefcase },
@@ -106,7 +108,7 @@ export default function DashboardSidebar() {
             Post Resume
           </Button>
         )}
-        <Button variant="destructive" size="lg" className="justify-start" onClick={() => signOut()}>
+        <Button variant="ghost" size="lg" className="justify-start text-muted-foreground hover:text-foreground" onClick={() => signOut()}>
           <LogOut />
           Logout
         </Button>

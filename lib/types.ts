@@ -14,3 +14,32 @@ export type MenuItem = {
 export function resolveUserRole(role?: string | null): UserRole {
   return role === "recruiter" || role === "admin" ? role : "seeker"
 }
+
+export const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"] as const
+
+export type JobType = (typeof JOB_TYPES)[number]
+
+export const JOB_CATEGORIES = [
+  "Engineering, Tech",
+  "Design, Creative",
+  "Marketing",
+  "Finance",
+  "Other",
+] as const
+
+export const SALARY_FREQUENCIES = ["per hour", "per day", "per week", "per month", "per year"] as const
+
+export type JobForm = {
+  title: string
+  companyName: string
+  category: string
+  jobType: JobType
+  isRemote: boolean
+  location: string
+  deadline: string
+  minSalary: string
+  maxSalary: string
+  frequency: string
+  responsibilities: string
+  qualifications: string
+}

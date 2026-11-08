@@ -24,6 +24,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
       suppressHydrationWarning
       className={cn(
         "antialiased font-sans",
@@ -33,7 +34,7 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>
+        <ThemeProvider defaultTheme="dark">
           {children}
         </ThemeProvider>
       </body>

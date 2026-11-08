@@ -3,14 +3,10 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LogOut, Menu, User as UserIcon } from "lucide-react"
+import { LayoutDashboard, LogOut, Menu, User as UserIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,7 +56,7 @@ export function Navbar() {
 
   return (
     <header className="absolute top-4 left-1/2 z-50 w-[min(1200px,94vw)] -translate-x-1/2">
-      <div className="flex h-16 w-full items-center justify-between rounded-[14px] border border-white/[0.06] bg-[rgba(20,20,22,0.6)] px-4 backdrop-blur-[12px] sm:px-6">
+      <div className="flex h-16 w-full items-center justify-between rounded-[14px] border border-white/6 bg-[rgba(20,20,22,0.6)] px-4 backdrop-blur-md sm:px-6">
         {/* Logo */}
         <Link
           href="/"
@@ -109,10 +105,13 @@ export function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <button className="flex items-center gap-3 rounded-full py-1 pr-3 pl-1 outline-none transition-colors hover:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-white/30">
+                  <button className="flex items-center gap-3 rounded-full py-1 pr-3 pl-1 transition-colors outline-none hover:bg-white/6 focus-visible:ring-2 focus-visible:ring-white/30">
                     <Avatar className="size-8 border border-white/20">
                       {user.image && (
-                        <AvatarImage src={user.image} alt={user.name || "User"} />
+                        <AvatarImage
+                          src={user.image}
+                          alt={user.name || "User"}
+                        />
                       )}
                       <AvatarFallback className="bg-brand text-xs font-semibold text-white">
                         {initials}
@@ -126,13 +125,20 @@ export function Navbar() {
               />
               <DropdownMenuContent
                 align="end"
-                className="w-56 border border-white/10 bg-[#0e0e12]/95 p-1 text-white backdrop-blur-xl shadow-2xl"
+                className="w-56 border border-white/10 bg-[#0e0e12]/95 p-1 text-white shadow-2xl backdrop-blur-xl"
               >
                 <div className="px-3 py-2">
                   <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-white/50 truncate">{user.email}</p>
+                  <p className="truncate text-xs text-white/50">{user.email}</p>
                 </div>
                 <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuItem
+                  render={<Link href={user.role ? `/dashboard/${user.role}` : "/dashboard"} />}
+                  className="cursor-pointer focus:bg-white/10 focus:text-white"
+                >
+                  <LayoutDashboard className="mr-2 size-4" />
+                  Dashboard
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleSignOut}
                   className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-300"
@@ -182,7 +188,11 @@ export function Navbar() {
             <div>
               <SheetHeader className="text-left">
                 <SheetTitle>
-                  <Link href="/" aria-label="HireLoop home" className="inline-block">
+                  <Link
+                    href="/"
+                    aria-label="HireLoop home"
+                    className="inline-block"
+                  >
                     <Image
                       src="/logo.png"
                       alt="HireLoop"
@@ -195,7 +205,7 @@ export function Navbar() {
               </SheetHeader>
 
               {user && (
-                <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/10 bg-white/4 p-3">
                   <Avatar className="size-10 border border-white/20">
                     {user.image && (
                       <AvatarImage src={user.image} alt={user.name || "User"} />
@@ -208,7 +218,9 @@ export function Navbar() {
                     <p className="truncate text-sm font-medium text-white">
                       {user.name}
                     </p>
-                    <p className="truncate text-xs text-white/50">{user.email}</p>
+                    <p className="truncate text-xs text-white/50">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
               )}
@@ -242,14 +254,20 @@ export function Navbar() {
 
             <SheetFooter className="flex flex-col gap-2 border-t border-white/10 pt-4">
               {user ? (
-                <Button
-                  onClick={handleSignOut}
-                  variant="outline"
-                  className="h-11 w-full rounded-xl border-red-500/20 bg-red-500/10 text-base font-semibold text-red-400 hover:bg-red-500/20 hover:text-red-300"
-                >
-                  <LogOut className="mr-2 size-4" />
-                  Sign Out
-                </Button>
+                <>
+                <Link href={`/dashboard/${user?.role}`}>
+                <Button variant="outline" className="h-11 w-full rounded-xl border-white/15 bg-white/5 text-base font-semibold text-white hover:bg-white/10">
+                Dashboard</Button>
+                </Link>
+                  <Button
+                    onClick={handleSignOut}
+                    variant="outline"
+                    className="h-11 w-full rounded-xl border-red-500/20 bg-red-500/10 text-base font-semibold text-red-400 hover:bg-red-500/20 hover:text-red-300"
+                  >
+                    <LogOut className="mr-2 size-4" />
+                    Sign Out
+                  </Button>
+                </>
               ) : (
                 <>
                   <SheetClose
