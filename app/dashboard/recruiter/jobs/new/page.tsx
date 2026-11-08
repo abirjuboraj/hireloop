@@ -67,7 +67,7 @@ const result = await createJob(form);
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl p-6 md:p-8">
+    <div className="w-full max-w-6xl px-4 py-6 md:px-8 md:py-8">
       {/* Page header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>

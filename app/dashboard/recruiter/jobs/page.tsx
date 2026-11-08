@@ -29,90 +29,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { type JobPost } from "@/lib/types"
+import { useEffect, useState } from "react"
+import { getJobs } from "@/lib/api/jobs"
 
-// Dummy data until fetching is implemented
-const DUMMY_JOB_POSTS: JobPost[] = [
-  {
-    title: "Frontend Developer",
-    companyName: "HirePulse Network",
-    category: "Engineering, Tech",
-    jobType: "Full-time",
-    isRemote: true,
-    location: "New York, USA",
-    deadline: "2026-12-30",
-    minSalary: "25",
-    maxSalary: "40",
-    frequency: "per hour",
-    responsibilities: "",
-    qualifications: "",
-    applicants: 34,
-    postedAgo: "Posted 1w ago",
-  },
-  {
-    title: "Senior Product Designer",
-    companyName: "HirePulse Labs",
-    category: "Design, Creative",
-    jobType: "Full-time",
-    isRemote: false,
-    location: "London, UK (Hybrid)",
-    deadline: "2027-01-14",
-    minSalary: "1100",
-    maxSalary: "1450",
-    frequency: "per week",
-    responsibilities: "",
-    qualifications: "",
-    applicants: 19,
-    postedAgo: "Posted 3w ago",
-  },
-  {
-    title: "DevOps Specialist",
-    companyName: "HirePulse Platform",
-    category: "Engineering, Tech",
-    jobType: "Full-time",
-    isRemote: false,
-    location: "Berlin, Germany",
-    deadline: "2027-01-30",
-    minSalary: "5500",
-    maxSalary: "12000",
-    frequency: "per month",
-    responsibilities: "",
-    qualifications: "",
-    applicants: 12,
-    postedAgo: "Posted 4w ago",
-  },
-  {
-    title: "Product Marketing Lead",
-    companyName: "HirePulse Network",
-    category: "Marketing",
-    jobType: "Full-time",
-    isRemote: true,
-    location: "EU / US",
-    deadline: "2027-02-15",
-    minSalary: "8000",
-    maxSalary: "10500",
-    frequency: "per month",
-    responsibilities: "",
-    qualifications: "",
-    applicants: 27,
-    postedAgo: "Posted 5w ago",
-  },
-  {
-    title: "QA Automation Engineer",
-    companyName: "HirePulse Platform",
-    category: "Other",
-    jobType: "Part-time",
-    isRemote: false,
-    location: "Dublin, Ireland (Hybrid)",
-    deadline: "2026-08-01",
-    minSalary: "35",
-    maxSalary: "50",
-    frequency: "per hour",
-    responsibilities: "",
-    qualifications: "",
-    applicants: 8,
-    postedAgo: "Closed",
-  },
-]
 
 const categoryMeta: Record<string, { icon: typeof Code2; color: string }> = {
   "Engineering, Tech": { icon: Code2, color: "text-blue-400" },
@@ -134,12 +53,28 @@ const formatDate = (date: string) =>
   new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 
 export default function ManageJobsPage() {
-  const jobPosts = DUMMY_JOB_POSTS
 
+    const [fetchedJobs, setFetchedJobs] = useState<JobPost[]>([]);
+  
+    useEffect(()=>{
+
+        const fetchJobs = async()=> {
+
+           try {
+            const jobPosts = await getJobs();
+            if (jobPosts) {
+                setFetchedJobs(jobPosts);
+            }
+           } catch (error) {
+             console.error("Failed to fetch jobs:", error);
+            } 
+           }
+        fetchJobs();
+    },[])
   return (
-    <div className="mx-auto w-full max-w-6xl p-6 md:p-8">
+    <div className="w-full max-w-6xl px-4 py-6 md:px-8 md:py-8">
       {/* Page header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Link href="/dashboard/recruiter/jobs" className="transition-colors hover:text-foreground">
@@ -156,6 +91,7 @@ export default function ManageJobsPage() {
         <Button
           size="lg"
           className="rounded-full bg-brand font-semibold hover:bg-brand/85"
+          nativeButton={false}
           render={<Link href="/dashboard/recruiter/jobs/new" />}
         >
           <Plus className="size-4" />
@@ -164,8 +100,8 @@ export default function ManageJobsPage() {
       </div>
 
       {/* Listings table */}
-      <div className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card">
-        <Table className="w-full">
+      <div className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card xl:overflow-visible">
+        <Table className="w-full min-w-205 xl:min-w-0 [&_th]:h-11 [&_th]:bg-white/2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-muted-foreground [&_th:first-child]:pl-5 [&_th:last-child]:pr-5 [&_td]:py-3.5 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead>Job Title &amp; Dept</TableHead>
@@ -179,14 +115,14 @@ export default function ManageJobsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {jobPosts.map((job) => {
+            {fetchedJobs.map((job) => {
               const isExpired = new Date(job.deadline) < new Date()
               const meta = categoryMeta[job.category] ?? categoryMeta.Other
 
               return (
                 <TableRow key={job.title} className="border-border/60 hover:bg-muted/40">
                   {/* Title & dept */}
-                  <TableCell>
+                  <TableCell className="whitespace-normal">
                     <div className="flex items-center gap-3">
                       <div
                         className={`flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/4 ${meta.color}`}
@@ -201,7 +137,7 @@ export default function ManageJobsPage() {
                   </TableCell>
 
                   {/* Company & location */}
-                  <TableCell>
+                  <TableCell className="whitespace-normal">
                     <p className="text-sm font-medium">{job.companyName}</p>
                     <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       {job.isRemote ? <Globe className="size-3" /> : <MapPin className="size-3" />}

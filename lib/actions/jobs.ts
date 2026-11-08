@@ -1,6 +1,6 @@
 import { JobForm } from "../types";
 
-const AUTH_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+export const AUTH_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export const createJob = async( data: JobForm) => {
     try {
