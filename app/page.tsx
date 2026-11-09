@@ -1,11 +1,19 @@
 import { Hero } from "@/components/Hero"
 import { Navbar } from "@/components/Navbar"
+import { Features } from "@/components/Features"
+import { CallToAction } from "@/components/CallToAction"
+import { Footer } from "@/components/Footer"
 
 export default function Page() {
   return (
     <main className="relative min-h-screen bg-[#000]">
       <Navbar />
       <Hero />
+      <Features />
+      <CallToAction />
+      <Footer />
     </main>
   )
 }
+
+
