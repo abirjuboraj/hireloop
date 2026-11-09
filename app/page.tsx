@@ -1,5 +1,6 @@
 import { Hero } from "@/components/Hero"
 import { Navbar } from "@/components/Navbar"
+import { FeaturedJobs } from "@/components/FeaturedJobs"
 import { Features } from "@/components/Features"
 import { CallToAction } from "@/components/CallToAction"
 import { Footer } from "@/components/Footer"
@@ -9,6 +10,7 @@ export default function Page() {
     <main className="relative min-h-screen bg-[#000]">
       <Navbar />
       <Hero />
+      <FeaturedJobs />
       <Features />
       <CallToAction />
       <Footer />

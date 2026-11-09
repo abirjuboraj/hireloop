@@ -42,11 +42,11 @@ export function Navbar() {
   // Generate fallback initials
   const initials = user?.name
     ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase()
     : "HL"
 
   const handleSignOut = async () => {
@@ -56,7 +56,7 @@ export function Navbar() {
 
   return (
     <header className="absolute top-4 left-1/2 z-50 w-[min(1200px,94vw)] -translate-x-1/2">
-      <div className="flex h-16 w-full items-center justify-between rounded-[14px] border border-white/6 bg-[rgba(20,20,22,0.6)] px-4 backdrop-blur-md sm:px-6">
+      <div className="flex h-16 w-full items-center justify-between rounded-[14px] border border-white/6 bg-[rgba(20,20,22,0.6)] px-4 backdrop-blur-md sm:px-6 lg:px-8">
         {/* Logo */}
         <Link
           href="/"
@@ -255,10 +255,10 @@ export function Navbar() {
             <SheetFooter className="flex flex-col gap-2 border-t border-white/10 pt-4">
               {user ? (
                 <>
-                <Link href={`/dashboard/${user?.role}`}>
-                <Button variant="outline" className="h-11 w-full rounded-xl border-white/15 bg-white/5 text-base font-semibold text-white hover:bg-white/10">
-                Dashboard</Button>
-                </Link>
+                  <Link href={`/dashboard/${user?.role}`}>
+                    <Button variant="outline" className="h-11 w-full rounded-xl border-white/15 bg-white/5 text-base font-semibold text-white hover:bg-white/10">
+                      Dashboard</Button>
+                  </Link>
                   <Button
                     onClick={handleSignOut}
                     variant="outline"

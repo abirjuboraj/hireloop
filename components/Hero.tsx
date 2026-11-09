@@ -230,7 +230,7 @@ export function Hero() {
         {/* 
           LAYER 7: FOUR STAT CARDS AT BOTTOM, OVERLAPPING THE GLOBE
         */}
-        <div className="mx-auto mt-12 grid max-w-[1320px] grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => {
             const Icon = stat.icon
             return (

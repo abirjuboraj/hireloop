@@ -60,8 +60,8 @@ const features: FeatureItem[] = [
 
 export function Features() {
   return (
-    <section className="relative bg-[#0c0c0e] py-20 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative bg-[#0c0c0e] py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center">
           {/* Eyebrow badge / pill */}

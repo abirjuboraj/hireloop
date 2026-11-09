@@ -59,37 +59,39 @@ export function CallToAction() {
       {/* 
         LAYER 4: Foreground Content
       */}
-      <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)] sm:text-5xl md:text-6xl md:leading-[1.15]">
-          Your next role is
-          <br />
-          already looking for you
-        </h2>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)] sm:text-5xl md:text-6xl md:leading-[1.15]">
+            Your next role is
+            <br />
+            already looking for you
+          </h2>
 
-        <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-white/80 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] sm:text-base md:text-lg">
-          Build a profile in three minutes. The matches start arriving tomorrow
-          morning.
-        </p>
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-white/80 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] sm:text-base md:text-lg">
+            Build a profile in three minutes. The matches start arriving tomorrow
+            morning.
+          </p>
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-          <Link href="/sign-up" className="w-full sm:w-auto">
-            <Button
-              size="lg"
-              className="h-12 w-full rounded-xl bg-white px-7 text-sm font-semibold text-black shadow-lg transition-all hover:bg-white/90 sm:w-auto"
-            >
-              Create a free account
-            </Button>
-          </Link>
-          <Link href="/pricing" className="w-full sm:w-auto">
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 w-full rounded-xl border-white/20 bg-white/[0.06] px-7 text-sm font-semibold text-white backdrop-blur-md transition-all hover:border-white/35 hover:bg-white/15 sm:w-auto"
-            >
-              View pricing
-            </Button>
-          </Link>
+          {/* Action Buttons */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+            <Link href="/sign-up" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                className="h-12 w-full rounded-xl bg-white px-7 text-sm font-semibold text-black shadow-lg transition-all hover:bg-white/90 sm:w-auto"
+              >
+                Create a free account
+              </Button>
+            </Link>
+            <Link href="/pricing" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 w-full rounded-xl border-white/20 bg-white/[0.06] px-7 text-sm font-semibold text-white backdrop-blur-md transition-all hover:border-white/35 hover:bg-white/15 sm:w-auto"
+              >
+                View pricing
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </section>
