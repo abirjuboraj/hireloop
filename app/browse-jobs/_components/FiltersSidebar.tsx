@@ -127,8 +127,9 @@ export function FiltersSidebar({ jobs }: FiltersSidebarProps) {
           <h3 className="text-sm font-semibold">Location</h3>
           <div className="mt-2.5">
             <FilterCheckbox
-              label="Remote only"
+              label="Remote"
               checked={remoteOnly}
+               count={jobs.filter((job) => job.isRemote).length}
               onToggle={handleToggleRemote}
             />
           </div>

@@ -59,7 +59,7 @@ export function CallToAction() {
       {/* 
         LAYER 4: Foreground Content
       */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto w-[min(1200px,94vw)]">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.8)] sm:text-5xl md:text-6xl md:leading-[1.15]">
             Your next role is

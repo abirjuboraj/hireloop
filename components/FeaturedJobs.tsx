@@ -29,7 +29,7 @@ export function FeaturedJobs({ jobs = DUMMY_JOBS }: FeaturedJobsProps) {
 
   return (
     <section className="relative bg-[#000] py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-[min(1200px,94vw)]">
         {/* Header */}
         <div className="text-center">
           {/* Eyebrow badge */}

@@ -31,7 +31,7 @@ const footerSections = [
 export function Footer() {
   return (
     <footer className="relative bg-[#000] border-t border-white/[0.08] text-white">
-      <div className="mx-auto max-w-7xl px-4 pt-16 pb-12 sm:px-6 lg:px-8">
+      <div className="mx-auto w-[min(1200px,94vw)] pt-16 pb-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8">
           {/* Brand Column (Left) */}
