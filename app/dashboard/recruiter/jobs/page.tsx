@@ -85,30 +85,30 @@ export default function ManageJobsPage() {
   }, [])
 
   const handleDeleteConfirm = async () => {
-  if (!selectedJob) return;
+    if (!selectedJob) return
 
-  try {
-    const res = await deleteJob(selectedJob._id);
+    try {
+      const res = await deleteJob(selectedJob._id)
 
-    if (res && res.deletedCount > 0) {
-      setFetchedJobs((prev) =>
-        prev.filter((job: JobPost) => job._id !== selectedJob._id)
-      );
+      if (res && res.deletedCount > 0) {
+        setFetchedJobs((prev) =>
+          prev.filter((job: JobPost) => job._id !== selectedJob._id)
+        )
 
-      toast.add({
-        title: "Job deleted",
-        description: `The job "${selectedJob.title}" has been successfully deleted.`,
-      });
+        toast.add({
+          title: "Job deleted",
+          description: `The job "${selectedJob.title}" has been successfully deleted.`,
+        })
 
-      router.refresh();
+        router.refresh()
+      }
+    } catch (error) {
+      console.error("Failed to delete job:", error)
+    } finally {
+      setIsDeleteOpen(false)
+      setSelectedJob(null)
     }
-  } catch (error) {
-    console.error("Failed to delete job:", error);
-  } finally {
-    setIsDeleteOpen(false);
-    setSelectedJob(null);
   }
-};
   return (
     <div className="w-full max-w-6xl px-4 py-6 md:px-8 md:py-8">
       {/* Page header */}
@@ -155,7 +155,7 @@ export default function ManageJobsPage() {
               <TableHead>Applicants</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Deadline</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -263,6 +263,14 @@ export default function ManageJobsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="text-muted-foreground hover:text-brand"
+                        aria-label={`View ${job.title}`}
+                      >
+                        <Eye className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         aria-label={`Delete ${job.title}`}
                         className="text-muted-foreground hover:text-red-400"
                         onClick={() => {
@@ -272,33 +280,6 @@ export default function ManageJobsPage() {
                       >
                         <Trash2 className="size-4" />
                       </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label={`More actions for ${job.title}`}
-                              className="text-muted-foreground"
-                            />
-                          }
-                        >
-                          <EllipsisVertical className="size-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="text-sm">
-                          <DropdownMenuItem>
-                            <Eye className="size-4" />
-                            View details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-400"
-                            onClick={() => undefined /* TODO: delete job */}
-                          >
-                            <Trash2 className="size-4" />
-                            Delete job
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </div>
                   </TableCell>
                 </TableRow>

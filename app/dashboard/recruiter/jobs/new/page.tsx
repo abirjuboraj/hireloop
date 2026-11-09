@@ -30,6 +30,8 @@ import {
 } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { createJob } from "@/lib/actions/jobs"
+import { toast } from "@/components/ui/toast"
+import { useRouter } from "next/navigation"
 
 const initialForm: JobForm = {
   title: "",
@@ -42,13 +44,16 @@ const initialForm: JobForm = {
   minSalary: "",
   maxSalary: "",
   frequency: "per hour",
-  responsibilities: "",
-  qualifications: "",
+  responsibilities: [],
+  qualifications: [],
+  applicants: 0,
 }
 
 export default function PostJobPage() {
   const [form, setForm] = useState<JobForm>(initialForm)
-
+  const [responsibilitiesText, setResponsibilitiesText] = useState("")
+  const [qualificationsText, setQualificationsText] = useState("")
+  const router = useRouter()
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -59,11 +64,39 @@ export default function PostJobPage() {
   const setField = <K extends keyof JobForm>(key: K, value: JobForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }))
 
-  const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  /** Splits multiline text (one item per line) into a clean array of strings. */
+  const splitLines = (text: string) =>
+    text
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
 
-const result = await createJob(form);
-    console.log(result);
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const payload: JobForm = {
+      ...form,
+      responsibilities: splitLines(responsibilitiesText),
+      qualifications: splitLines(qualificationsText),
+    }
+    const result = await createJob(payload)
+    if (result.success) {
+      toast.add({
+        title: "Job Posted",
+        description: "Your job listing has been successfully posted.",
+        type: "success",
+      })
+      setForm(initialForm)
+      setResponsibilitiesText("")
+      setQualificationsText("")
+      router.push("/dashboard/recruiter/jobs")
+    } else {
+      toast.add({
+        title: "Error Posting Job",
+        description: result.error || "An error occurred while posting the job.",
+        type: "destructive",
+      })
+    }
   }
 
   return (
@@ -93,7 +126,9 @@ const result = await createJob(form);
 
       <form
         id="post-job-form"
-        onSubmit={handleSubmit}
+        onSubmit={(event) => {
+          handleSubmit(event)
+        }}
         className="mt-8 space-y-6"
       >
         {/* 1. Basic Information */}
@@ -306,12 +341,14 @@ const result = await createJob(form);
             </Label>
             <Textarea
               id="responsibilities"
-              name="responsibilities"
-              value={form.responsibilities}
-              onChange={handleChange}
+              value={responsibilitiesText}
+              onChange={(event) => setResponsibilitiesText(event.target.value)}
+              onBlur={() =>
+                setField("responsibilities", splitLines(responsibilitiesText))
+              }
+              placeholder="Enter each responsibility on a new line"
               required
               rows={5}
-              placeholder="Showcase your commitment to delivering exceptional user interfaces and digital experiences. You will collaborate directly with systems designers and backend engineers to craft responsive, micro-interaction rich products."
             />
           </div>
 
@@ -322,14 +359,14 @@ const result = await createJob(form);
             </Label>
             <Textarea
               id="qualifications"
-              name="qualifications"
-              value={form.qualifications}
-              onChange={handleChange}
+              value={qualificationsText}
+              onChange={(event) => setQualificationsText(event.target.value)}
+              onBlur={() =>
+                setField("qualifications", splitLines(qualificationsText))
+              }
               required
               rows={5}
-              placeholder="• 3+ years of experience with React, TypeScript, and modern state architectures
-• Solid understanding of DOM performance and component-driven designs
-• Experience working closely with product teams and UI/UX designers"
+              placeholder="Enter each qualification on a new line"
             />
           </div>
         </FormSection>

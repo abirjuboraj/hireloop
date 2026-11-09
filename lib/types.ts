@@ -40,14 +40,14 @@ export type JobForm = {
   minSalary: string
   maxSalary: string
   frequency: string
-  responsibilities: string
-  qualifications: string
+  responsibilities: string[]
+  qualifications: string[]
+  applicants: number
 }
 
 
 /** A stored job post shown in the recruiter's Manage Jobs table (extends the create form). */
 export type JobPost = JobForm & {
-  _id:string
-  applicants: number
+  _id: string
   postedAgo: string
 }
