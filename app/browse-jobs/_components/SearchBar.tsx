@@ -5,13 +5,18 @@ import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useRouter } from "next/navigation"
 
 export function SearchBar() {
   const [query, setQuery] = useState("")
+  const router = useRouter();
 
-  // TODO: push the query into the ?q= search param so the server refetches (functionality on you)
   const handleSearch = () => {
-    console.log("Searching jobs for:", query)
+    const params = new URLSearchParams();
+    params.set('search', query);
+    router.push(`/browse-jobs?${params.toString()}`)
+
+    console.log(params);
   }
 
   return (
@@ -26,6 +31,7 @@ export function SearchBar() {
         <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
+          name="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search by job title, keywords..."
