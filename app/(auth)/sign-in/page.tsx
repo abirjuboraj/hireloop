@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label"
 import { signIn } from "@/lib/auth-client"
 import { useRouter, useSearchParams } from "next/navigation"
 
-export default function SignInPage() {
+function SignInForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: "",
@@ -52,7 +52,7 @@ export default function SignInPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const { data, error } = await signIn.email({
+    const { error } = await signIn.email({
       email: formData.email as string,
       password: formData.password as string,
       rememberMe: true,
@@ -72,7 +72,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#000] px-4 pt-28 pb-12 sm:pt-32">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-4 pt-28 pb-12 sm:pt-32">
       {/* Background radial glow */}
       <div
         aria-hidden="true"
@@ -121,7 +121,7 @@ export default function SignInPage() {
                 type="button"
                 variant="outline"
                 onClick={() => handleOAuthSignIn("google")}
-                className="h-10 border-white/10 bg-white/[0.03] text-white hover:bg-white/10 hover:text-white"
+                className="h-10 border-white/10 bg-white/3 text-white hover:bg-white/10 hover:text-white"
               >
                 <svg className="mr-2 size-4" viewBox="0 0 24 24">
                   <path
@@ -148,7 +148,7 @@ export default function SignInPage() {
                 type="button"
                 variant="outline"
                 onClick={() => handleOAuthSignIn("github")}
-                className="h-10 border-white/10 bg-white/[0.03] text-white hover:bg-white/10 hover:text-white"
+                className="h-10 border-white/10 bg-white/3 text-white hover:bg-white/10 hover:text-white"
               >
                 <svg className="mr-2 size-4" fill="currentColor" viewBox="0 0 24 24">
                   <path
@@ -185,7 +185,7 @@ export default function SignInPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="h-11 rounded-lg border-white/10 bg-white/[0.04] pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
+                    className="h-11 rounded-lg border-white/10 bg-white/4 pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
                   />
                 </div>
               </div>
@@ -216,7 +216,7 @@ export default function SignInPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="h-11 rounded-lg border-white/10 bg-white/[0.04] pr-10 pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
+                    className="h-11 rounded-lg border-white/10 bg-white/4 pr-10 pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
                   />
                   <button
                     type="button"
@@ -270,5 +270,14 @@ export default function SignInPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <SignInForm />
+    </Suspense>
   )
 }
