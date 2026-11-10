@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { signIn } from "@/lib/auth-client"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -26,6 +27,12 @@ export default function SignInPage() {
     password: "",
     rememberMe: false,
   })
+  const router = useRouter();
+
+  const searchParams = useSearchParams();
+
+  const callback = searchParams.get("callback") ?? "/";
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -49,12 +56,13 @@ export default function SignInPage() {
       email: formData.email as string,
       password: formData.password as string,
       rememberMe: true,
-      callbackURL: "/"
     })
 
     if (error) {
       console.log(error.message)
     }
+
+    router.push(callback);
 
 
   }

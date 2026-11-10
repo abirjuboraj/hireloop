@@ -12,3 +12,15 @@ export const getJobs = async (query: string = "")=> {
         console.error("Error fetching jobs:", error);
     }
 }
+
+
+export const getJob = async (id: string)=> {
+    try {
+        const res = await fetch(`${AUTH_URL}/jobs/${id}`);
+
+        const jobData = await res.json();
+        return jobData;
+    } catch (error) {
+        console.error("Error fetching job:", error);
+    }
+}

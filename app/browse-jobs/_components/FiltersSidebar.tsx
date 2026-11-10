@@ -9,37 +9,78 @@ import {
   type JobPost,
 } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 type FiltersSidebarProps = {
   /** Jobs currently shown — used to derive the count badge next to each option. */
   jobs: JobPost[]
 }
-
+ 
 export function FiltersSidebar({ jobs }: FiltersSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [selectedType, setSelectedType] = useState<string | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [remoteOnly, setRemoteOnly] = useState(false)
+
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  // Get filter values from URL
+  const selectedType = searchParams.get("jobType")
+  const selectedCategory = searchParams.get("category")
+  const remoteOnly = searchParams.get("isRemote") === "true"
 
   const activeCount =
-    (selectedType ? 1 : 0) + (selectedCategory ? 1 : 0) + (remoteOnly ? 1 : 0)
+    (selectedType ? 1 : 0) +
+    (selectedCategory ? 1 : 0) +
+    (remoteOnly ? 1 : 0)
 
-  // Only one job type can be active — clicking it again clears the selection.
-  // TODO: push this filter into the search params so the server refetches (functionality on you)
-  const handleSelectType = (type: string) =>
-    setSelectedType((previous) => (previous === type ? null : type))
+  // Reusable function to update URL parameters
+  const updateFilter = (key: string, value: string | null) => {
+    const params = new URLSearchParams(searchParams.toString())
 
-  // Only one category can be active — clicking it again clears the selection.
-  const handleSelectCategory = (category: string) =>
-    setSelectedCategory((previous) => (previous === category ? null : category))
+    if (value) {
+      params.set(key, value)
+    } else {
+      params.delete(key)
+    }
 
-  const handleToggleRemote = () => setRemoteOnly((previous) => !previous)
-
-  const handleClearAll = () => {
-    setSelectedType(null)
-    setSelectedCategory(null)
-    setRemoteOnly(false)
+    router.push(`${pathname}?${params.toString()}`, {
+      scroll: false,
+    })
   }
+
+  // Job Type
+  const handleSelectType = (type: string) => {
+    const nextType = selectedType === type ? null : type
+    updateFilter("jobType", nextType)
+  }
+
+  // Category
+  const handleSelectCategory = (category: string) => {
+    const nextCategory =
+      selectedCategory === category ? null : category
+
+    updateFilter("category", nextCategory)
+  }
+
+  // Remote
+  const handleToggleRemote = () => {
+    updateFilter("isRemote", remoteOnly ? null : "true")
+  }
+
+  // Clear all filters
+  const handleClearAll = () => {
+    const params = new URLSearchParams(searchParams.toString())
+
+    params.delete("jobType")
+    params.delete("category")
+    params.delete("isRemote")
+
+    router.push(`${pathname}?${params.toString()}`, {
+      scroll: false,
+    })
+  }
+
+
 
   return (
     <div className="relative">
@@ -91,7 +132,7 @@ export function FiltersSidebar({ jobs }: FiltersSidebarProps) {
             {JOB_TYPES.map((type) => (
               <FilterRadio
                 key={type}
-                name="job-type"
+                name="jobType"
                 label={type}
                 count={jobs.filter((job) => job.jobType === type).length}
                 checked={selectedType === type}
@@ -128,6 +169,7 @@ export function FiltersSidebar({ jobs }: FiltersSidebarProps) {
           <div className="mt-2.5">
             <FilterCheckbox
               label="Remote"
+              name="isRemote"
               checked={remoteOnly}
                count={jobs.filter((job) => job.isRemote).length}
               onToggle={handleToggleRemote}
@@ -147,6 +189,7 @@ function FilterCheckbox({
   onToggle,
 }: {
   label: string
+  name?: string
   count?: number
   checked: boolean
   onToggle: () => void

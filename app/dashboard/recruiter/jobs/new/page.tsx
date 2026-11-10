@@ -45,7 +45,7 @@ const initialForm: JobForm = {
   maxSalary: "",
   frequency: "per hour",
   responsibilities: [],
-  qualifications: [],
+  "qualifications & requirements": [],
   applicants: 0,
 }
 
@@ -77,7 +77,7 @@ export default function PostJobPage() {
     const payload: JobForm = {
       ...form,
       responsibilities: splitLines(responsibilitiesText),
-      qualifications: splitLines(qualificationsText),
+      "qualifications & requirements": splitLines(qualificationsText),
     }
     const result = await createJob(payload)
     if (result.success) {
@@ -362,7 +362,7 @@ export default function PostJobPage() {
               value={qualificationsText}
               onChange={(event) => setQualificationsText(event.target.value)}
               onBlur={() =>
-                setField("qualifications", splitLines(qualificationsText))
+                setField("qualifications & requirements", splitLines(qualificationsText))
               }
               required
               rows={5}

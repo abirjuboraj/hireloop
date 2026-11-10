@@ -5,6 +5,7 @@ import { useState } from "react"
 
 import type { JobPost } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 /** Short suffix shown after the salary range, e.g. "$1400 - $1800 /wk". */
 const FREQUENCY_SUFFIX: Record<string, string> = {
@@ -19,7 +20,9 @@ const chipClass =
   "inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2.5 text-xs font-medium text-muted-foreground"
 
 export function JobCard({ job }: { job: JobPost }) {
-  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [isBookmarked, setIsBookmarked] = useState(false);
+
+  const router = useRouter();
 
   // TODO: connect this to the saved-jobs API (functionality on you)
   const handleToggleBookmark = () => {
@@ -37,8 +40,16 @@ export function JobCard({ job }: { job: JobPost }) {
       ? `${job.location}, (Remote)`
       : job.location
 
+
+  const handleJobDetails = () => {
+    router.push(`/browse-jobs/${job._id}`);
+  }
+
+
+
+
   return (
-    <article className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-border/80 hover:bg-card/80 sm:p-6">
+    <article onClick={handleJobDetails} className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-border/80 hover:bg-card/80 sm:p-6">
       <div className="flex gap-4">
         {/* Company logo */}
         <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-base font-semibold text-brand sm:size-14">

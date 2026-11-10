@@ -1,4 +1,5 @@
 import type { JobPost } from "@/lib/types"
+import { Suspense } from "react"
 
 import { JobCard } from "@/app/components/JobCard"
 import { Navbar } from "@/components/Navbar"
@@ -37,8 +38,11 @@ const BrowseJobsPage = async ({
         <SearchBar />
 
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-          {/* Filters — becomes a collapsible panel below `lg` */}
-          <FiltersSidebar jobs={jobs} />
+          {/* Filters — becomes a collapsible panel below `lg`.
+              Suspense boundary is required because the sidebar reads useSearchParams. */}
+          <Suspense>
+            <FiltersSidebar jobs={jobs} />
+          </Suspense>
 
           {/* Results */}
           <section>

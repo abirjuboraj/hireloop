@@ -12,11 +12,11 @@ export function SearchBar() {
   const router = useRouter();
 
   const handleSearch = () => {
+    // Search is its own param set — no filters are carried along with it.
     const params = new URLSearchParams();
     params.set('search', query);
     router.push(`/browse-jobs?${params.toString()}`)
 
-    console.log(params);
   }
 
   return (

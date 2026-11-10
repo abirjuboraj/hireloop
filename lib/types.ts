@@ -20,8 +20,8 @@ export const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"] as
 export type JobType = (typeof JOB_TYPES)[number]
 
 export const JOB_CATEGORIES = [
-  "Engineering, Tech",
-  "Design, Creative",
+  "Engineering & Tech",
+  "Design & Creative",
   "Marketing",
   "Finance",
   "Other",
@@ -41,7 +41,7 @@ export type JobForm = {
   maxSalary: string
   frequency: string
   responsibilities: string[]
-  qualifications: string[]
+  "qualifications & requirements": string[]
   applicants: number
 }
 
@@ -50,4 +50,5 @@ export type JobForm = {
 export type JobPost = JobForm & {
   _id: string
   postedAgo: string
+  status?: string
 }
