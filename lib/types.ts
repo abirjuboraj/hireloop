@@ -65,11 +65,15 @@ export type ApplicationStatus =
 
 /**
  * Data posted when a seeker applies — the job's snapshot is copied at
- * apply-time. User identity (seekerId/recruiterId) is resolved by the
- * backend from the session, never sent from the client.
+ * apply-time. User identity comes from the frontend session (JWT later).
  */
 export type ApplicationPayload = {
   jobId: string
+  /** Injected by applyToJob from the frontend session. */
+  seekerId?: string
+  seekerEmail?: string
+  /** From the jobs collection; null when the job has no recruiter id. */
+  recruiterId: string | null
   title: string
   companyName: string
   category: string
@@ -79,13 +83,11 @@ export type ApplicationPayload = {
 }
 
 /** A stored application shown in the seeker's Applications table. */
-export type Application = ApplicationPayload & {
+export type Application = Omit<ApplicationPayload, "seekerId"> & {
   _id: string
-  /** Identity, resolved server-side from the session. */
+  /** Identity, sent from the frontend session. */
   seekerId: string
   seekerEmail?: string
-  /** From the jobs collection; null when the job has no recruiter id. */
-  recruiterId: string | null
   status: ApplicationStatus
   /** ISO date string of when the seeker applied. */
   appliedAt: string

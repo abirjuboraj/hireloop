@@ -35,7 +35,6 @@ import {
 import { getApplications } from "@/lib/api/applications"
 import { useSession } from "@/lib/auth-client"
 import type { Application, ApplicationStatus } from "@/lib/types"
-import { resolveUserRole } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /* ------------------------------- helpers -------------------------------- */
@@ -108,7 +107,7 @@ export default function MyApplicationsPage() {
         setIsLoading(true)
 
         const params = new URLSearchParams()
-        // seekerId is resolved server-side from the session cookie.
+        params.set("seekerId", user.id)
         params.set("archived", tab === "Archived" ? "true" : "false")
         if (search) params.set("search", search)
 
@@ -188,7 +187,7 @@ export default function MyApplicationsPage() {
               setPage(1)
             }}
             placeholder="Search applications..."
-            className="h-10 rounded-lg border-white/10 bg-white/[0.04] pl-9 text-sm"
+            className="h-10 rounded-lg border-white/10 bg-white/4 pl-9 text-sm"
           />
         </div>
 
@@ -281,7 +280,7 @@ export default function MyApplicationsPage() {
         {/* Applications table */}
         <div className="mt-6 overflow-hidden rounded-xl border border-border">
           <div className="overflow-x-auto">
-            <Table className="w-full min-w-[720px] [&_td]:py-4 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5 [&_th]:h-11 [&_th]:text-xs [&_th]:font-normal [&_th]:text-muted-foreground [&_th:first-child]:pl-5 [&_th:last-child]:pr-5">
+            <Table className="w-full min-w-180 [&_td]:py-4 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5 [&_th]:h-11 [&_th]:text-xs [&_th]:font-normal [&_th]:text-muted-foreground [&_th:first-child]:pl-5 [&_th:last-child]:pr-5">
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent">
                   <TableHead>Job Title</TableHead>

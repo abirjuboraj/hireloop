@@ -1,16 +1,24 @@
 import { JobForm } from "../types";
+import { authClient } from "@/lib/auth-client"
 
 export const AUTH_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export const createJob = async( data: JobForm) => {
     try {
+        // User identity comes from the frontend session for now (JWT later).
+        const { data: session } = await authClient.getSession()
+        const user = session?.user
+
         const res = await fetch(`${AUTH_URL}/jobs`,{
             method: "POST",
-            credentials: "include",
             headers: {
                 "Content-type": "application/json",
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({
+                ...data,
+                recruiterId: user?.id ?? null,
+                recruiterEmail: user?.email ?? null,
+            }),
         });
 
         return res.json();

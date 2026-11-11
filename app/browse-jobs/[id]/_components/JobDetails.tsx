@@ -129,9 +129,11 @@ export function JobDetails({ job }: JobDetailsProps) {
       )
       return
     } else if (user.role === "seeker") {
-      // Job snapshot at apply-time — user identity is resolved by the backend from the session.
+      // Job snapshot at apply-time — seeker identity is injected by applyToJob
+      // from the frontend session; recruiterId comes from the job (or null).
       const application: ApplicationPayload = {
         jobId: job._id,
+        recruiterId: job.recruiterId ?? null,
         title: job.title,
         companyName: job.companyName,
         category: job.category,
