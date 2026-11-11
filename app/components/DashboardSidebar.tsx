@@ -34,11 +34,11 @@ import { resolveUserRole, type MenuItem, type UserRole } from "@/lib/types"
 const menuItemsByRole: Record<UserRole, MenuItem[]> = {
   seeker: [
     { name: "Dashboard", url: "/dashboard/seeker", icon: LayoutGrid },
-    { name: "Jobs", url: "/dashboard/jobs", icon: Briefcase },
-    { name: "Saved Jobs", url: "/dashboard/saved-jobs", icon: Bookmark },
-    { name: "Applications", url: "/dashboard/applications", icon: FileText },
-    { name: "Billing", url: "/dashboard/billing", icon: Banknote },
-    { name: "Settings", url: "/dashboard/settings", icon: Settings },
+    { name: "Jobs", url: "/dashboard/seeker/jobs", icon: Briefcase },
+    { name: "Saved Jobs", url: "/dashboard/seeker/saved-jobs", icon: Bookmark },
+    { name: "Applications", url: "/dashboard/seeker/applications", icon: FileText },
+    { name: "Billing", url: "/dashboard/seeker/billing", icon: Banknote },
+    { name: "Settings", url: "/dashboard/seeker/settings", icon: Settings },
   ],
   recruiter: [
     { name: "Dashboard", url: "/dashboard/recruiter", icon: LayoutGrid },
@@ -49,11 +49,11 @@ const menuItemsByRole: Record<UserRole, MenuItem[]> = {
   ],
   admin: [
     { name: "Dashboard", url: "/dashboard/admin", icon: LayoutGrid },
-    { name: "Users", url: "/dashboard/users", icon: Users },
-    { name: "Companies", url: "/dashboard/companies", icon: Building2 },
-    { name: "Jobs", url: "/dashboard/jobs", icon: Briefcase },
-    { name: "Payments", url: "/dashboard/payments", icon: Banknote },
-    { name: "Settings", url: "/dashboard/settings", icon: Settings },
+    { name: "Users", url: "/dashboard/admin/users", icon: Users },
+    { name: "Companies", url: "/dashboard/admin/companies", icon: Building2 },
+    { name: "Jobs", url: "/dashboard/admin/jobs", icon: Briefcase },
+    { name: "Payments", url: "/dashboard/admin/payments", icon: Banknote },
+    { name: "Settings", url: "/dashboard/admin/settings", icon: Settings },
   ],
 }
 

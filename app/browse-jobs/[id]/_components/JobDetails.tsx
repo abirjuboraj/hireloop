@@ -14,11 +14,12 @@ import { useState } from "react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import type { JobPost } from "@/lib/types"
+import type { ApplicationPayload, JobPost } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/toast"
+import { applyToJob } from "@/lib/actions/applications"
 
 type JobDetailsProps = {
   job: JobPost
@@ -28,7 +29,8 @@ type JobDetailsProps = {
 function toList(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.filter(
-      (item): item is string => typeof item === "string" && item.trim().length > 0
+      (item): item is string =>
+        typeof item === "string" && item.trim().length > 0
     )
   }
   if (typeof value === "string") {
@@ -64,7 +66,7 @@ function MetaTile({
 }) {
   return (
     <div className="rounded-xl border border-border bg-card px-4 py-4">
-      <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
         <Icon className="size-3.5 shrink-0" />
         {label}
       </div>
@@ -78,8 +80,11 @@ function BulletList({ items }: { items: string[] }) {
   return (
     <ul className="mt-4 space-y-3.5">
       {items.map((item) => (
-        <li key={item} className="flex gap-3 text-sm leading-relaxed text-muted-foreground">
-          <span className="mt-[8px] size-1.5 shrink-0 rounded-[2px] bg-muted-foreground/60" />
+        <li
+          key={item}
+          className="flex gap-3 text-sm leading-relaxed text-muted-foreground"
+        >
+          <span className="mt-2 size-1.5 shrink-0 rounded-xs bg-muted-foreground/60" />
           {item}
         </li>
       ))}
@@ -91,45 +96,68 @@ function BulletList({ items }: { items: string[] }) {
 function OverviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3">
-      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+      <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
         {label}
       </span>
-      <span className="truncate text-sm text-right">{value}</span>
+      <span className="truncate text-right text-sm">{value}</span>
     </div>
   )
 }
 
 export function JobDetails({ job }: JobDetailsProps) {
   const [isBookmarked, setIsBookmarked] = useState(false)
-  const {data:session} = useSession();
-  const user = session?.user;
-  const router = useRouter();
- 
-  const handleToggleBookmark = () => {
-    setIsBookmarked((previous) => !previous)
-    console.log("Bookmark toggled for job:", job._id)
-  }
+  const { data: session } = useSession()
+  const user = session?.user
+  const router = useRouter()
 
+  // const handleToggleBookmark = () => {
+  //   setIsBookmarked((previous) => !previous)
+  //   console.log("Bookmark toggled for job:", job._id)
+  // }
 
-  const handleApply = () => {
-    console.log("Applied to job:", job._id);
+  const handleApply = async() => {
+    console.log("Applied to job:", job._id)
 
-    if(!user) {
+    if (!user) {
       toast.add({
         type: "info",
         title: "Sign-in required",
-        description: "Please Sign in"
+        description: "Please Sign in",
       })
-      router.push(`/sign-in?callback=${encodeURIComponent(`/browse-jobs/${job._id}`)}`)
+      router.push(
+        `/sign-in?callback=${encodeURIComponent(`/browse-jobs/${job._id}`)}`
+      )
       return
-    }
+    } else if (user.role === "seeker") {
+      // Job snapshot at apply-time — user identity is resolved by the backend from the session.
+      const application: ApplicationPayload = {
+        jobId: job._id,
+        title: job.title,
+        companyName: job.companyName,
+        category: job.category,
+        jobType: job.jobType,
+        isRemote: job.isRemote,
+        location: job.location,
+      }
 
-    const application = {
-      jobId: job._id,
-      userId: user.id,
-      userEmail: user.email,
-      jobTitle: job.title,
-      companyName: job.companyName,
+      const res = await applyToJob(application);
+
+      if(res.success || res.insertedId){
+        toast.add({
+          title: "Job Apply Successful",
+          description: `You have successfully applied for the job ${job.title}`,
+          type: "success"
+        })
+
+        router.push("/dashboard/seeker/applications");
+      }
+
+    }else{
+      toast.add({
+        title: "Apply Denied",
+        description: "Only Job Seekers are allowed to apply",
+        type: "error"
+      })
     }
   }
 
@@ -181,10 +209,10 @@ export function JobDetails({ job }: JobDetailsProps) {
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={handleToggleBookmark}
+                  // onClick={handleToggleBookmark}
                   aria-pressed={isBookmarked}
                   aria-label={isBookmarked ? "Remove bookmark" : "Save job"}
-                  className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-black text-muted-foreground transition-colors hover:text-foreground"
+                  className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-black text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
                 >
                   <Bookmark
                     className={cn(
@@ -196,7 +224,7 @@ export function JobDetails({ job }: JobDetailsProps) {
                 <Button
                   type="button"
                   onClick={handleApply}
-                  className="h-10 rounded-lg bg-white px-5 text-sm font-semibold text-black hover:bg-white/90"
+                  className="h-10 rounded-lg bg-white px-5 text-sm font-semibold text-black hover:bg-white/90 cursor-pointer"
                 >
                   Apply Now
                 </Button>
@@ -206,19 +234,27 @@ export function JobDetails({ job }: JobDetailsProps) {
 
           {/* Quick facts */}
           <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <MetaTile icon={Banknote} label="Salary Range" value={salary} />
+            <MetaTile icon={Banknote} label={`Salary Range (${job.frequency})`} value={salary} />
             <MetaTile icon={MapPin} label="Location" value={locationText} />
             <MetaTile icon={Briefcase} label="Job Type" value={job.jobType} />
-            <MetaTile icon={Users} label="Applicants" value={`${job.applicants}`} />
+            <MetaTile
+              icon={Users}
+              label="Applicants"
+              value={`${job.applicants}`}
+            />
           </section>
 
           {/* Single description card — sections divided by hairlines, like the mockup */}
           <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-            <h2 className="text-lg font-bold tracking-tight">Job Description</h2>
+            <h2 className="text-lg font-bold tracking-tight">
+              Job Description
+            </h2>
 
             {/* Responsibilities */}
             <div className="mt-6 border-t border-border/60 pt-5">
-              <h3 className="text-base font-bold tracking-tight">Responsibilities</h3>
+              <h3 className="text-base font-bold tracking-tight">
+                Responsibilities
+              </h3>
               {responsibilities.length > 0 ? (
                 <BulletList items={responsibilities} />
               ) : (
@@ -230,7 +266,9 @@ export function JobDetails({ job }: JobDetailsProps) {
 
             {/* Requirements */}
             <div className="mt-6 border-t border-border/60 pt-5">
-              <h3 className="text-base font-bold tracking-tight">Requirements</h3>
+              <h3 className="text-base font-bold tracking-tight">
+                Requirements
+              </h3>
               {requirements.length > 0 ? (
                 <BulletList items={requirements} />
               ) : (
@@ -247,7 +285,7 @@ export function JobDetails({ job }: JobDetailsProps) {
           <h2 className="text-lg font-bold tracking-tight">Company Overview</h2>
 
           {/* Company image — initials fallback when no image exists */}
-          <div className="mt-4 grid aspect-[16/10] w-full place-items-center overflow-hidden rounded-xl border border-border bg-black">
+          <div className="mt-4 grid aspect-16/10 w-full place-items-center overflow-hidden rounded-xl border border-border bg-black">
             <span className="text-3xl font-bold text-foreground/80">
               {job.companyName.charAt(0).toUpperCase()}
             </span>

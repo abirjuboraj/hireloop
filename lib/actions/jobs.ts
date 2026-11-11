@@ -6,6 +6,7 @@ export const createJob = async( data: JobForm) => {
     try {
         const res = await fetch(`${AUTH_URL}/jobs`,{
             method: "POST",
+            credentials: "include",
             headers: {
                 "Content-type": "application/json",
             },

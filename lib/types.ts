@@ -51,4 +51,43 @@ export type JobPost = JobForm & {
   _id: string
   postedAgo: string
   status?: string
+  /** The recruiter who owns this job — null when missing from the jobs collection. */
+  recruiterId?: string | null
+}
+
+export type ApplicationStatus =
+  | "Applied"
+  | "Review"
+  | "Interview"
+  | "Shortlisted"
+  | "Rejected"
+  | "Offered"
+
+/**
+ * Data posted when a seeker applies — the job's snapshot is copied at
+ * apply-time. User identity (seekerId/recruiterId) is resolved by the
+ * backend from the session, never sent from the client.
+ */
+export type ApplicationPayload = {
+  jobId: string
+  title: string
+  companyName: string
+  category: string
+  jobType: string
+  isRemote: boolean
+  location: string
+}
+
+/** A stored application shown in the seeker's Applications table. */
+export type Application = ApplicationPayload & {
+  _id: string
+  /** Identity, resolved server-side from the session. */
+  seekerId: string
+  seekerEmail?: string
+  /** From the jobs collection; null when the job has no recruiter id. */
+  recruiterId: string | null
+  status: ApplicationStatus
+  /** ISO date string of when the seeker applied. */
+  appliedAt: string
+  archived?: boolean
 }
