@@ -1,8 +1,8 @@
 "use client"
 
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Suspense, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import {
   ArrowRight,
   ChevronRight,
@@ -26,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { toast } from "@/components/ui/toast"
 import { cn } from "@/lib/utils"
 
 type BillingCycle = "monthly" | "yearly"
@@ -73,10 +72,25 @@ const PLANS: Record<string, Plan> = {
 
 const YEARLY_DISCOUNT = 0.25
 
-// TODO: point this at the real Stripe Checkout session URL once integrated.
-const STRIPE_CHECKOUT_URL = "/checkout-stub"
+export default function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ canceled?: string }>
+}) {
+  useEffect(() => {
+    async function checkout() {
+      const { canceled } = await searchParams
 
-export default function CheckoutPage() {
+      if (canceled) {
+        console.log(
+          "Order canceled -- continue to shop around and check out when you're ready."
+        )
+      }
+    }
+
+    checkout()
+  }, [searchParams])
+
   return (
     <Suspense>
       <PaymentPage />
@@ -89,29 +103,12 @@ function PaymentPage() {
   const planKey = searchParams.get("plan")?.toLowerCase() ?? "growth"
   const plan = PLANS[planKey] ?? PLANS.growth
 
-  const router = useRouter();
-
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly")
-  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const total =
     billingCycle === "monthly"
       ? plan.price
       : Math.round(plan.price * 12 * (1 - YEARLY_DISCOUNT))
-
-  const handlePay = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    // TODO: create a Stripe Checkout session (server action / API route)
-    // with the billing details below, then redirect to session.url.
-    setIsRedirecting(true)
-    toast.add({
-      title: "Redirecting to Stripe…",
-      description: "You will be taken to a secure checkout page to complete your payment.",
-      type: "info",
-    })
-    router.push(STRIPE_CHECKOUT_URL)
-  }
 
   return (
     <div className="relative min-h-screen w-full px-4 py-10 md:px-8 md:py-14">
@@ -219,9 +216,14 @@ function PaymentPage() {
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">{billingCycle === "monthly" ? "Monthly" : "Yearly"} discount ({billingCycle === "monthly" ? 0 : (YEARLY_DISCOUNT * 100)}%)</dt>
+                <dt className="text-muted-foreground">
+                  {billingCycle === "monthly" ? "Monthly" : "Yearly"} discount (
+                  {billingCycle === "monthly" ? 0 : YEARLY_DISCOUNT * 100}%)
+                </dt>
                 <dd className="font-medium text-brand">
-                  −${plan.price * (billingCycle === "monthly" ? 0 : 12) - (billingCycle === "monthly" ? 0 : total)}
+                  −$
+                  {plan.price * (billingCycle === "monthly" ? 0 : 12) -
+                    (billingCycle === "monthly" ? 0 : total)}
                 </dd>
               </div>
               <div className="flex items-baseline justify-between border-t border-border pt-3">
@@ -237,7 +239,9 @@ function PaymentPage() {
           </section>
 
           {/* ── Payment details ── */}
-          <form onSubmit={handlePay}>
+          {/* POSTs to our API route, which creates the Stripe Checkout session
+              and 303-redirects the browser to Stripe's hosted checkout page. */}
+          <form action="/api/checkout_sessions" method="POST">
             <section className="rounded-2xl border border-border bg-card p-6">
               <h2 className="flex items-center gap-2 text-base font-semibold">
                 <span className="size-1.5 rounded-full bg-brand" />
@@ -329,14 +333,14 @@ function PaymentPage() {
                 </div>
               </div>
 
-              {/* Pay */}
+              {/* Pay — native submit → /api/checkout_sessions → Stripe */}
               <Button
                 type="submit"
+                role="link"
                 size="lg"
-                disabled={isRedirecting}
-                className="mt-6 h-11 w-full rounded-full bg-brand font-semibold hover:bg-brand/85"
+                className="mt-6 h-11 w-full rounded-full cursor-pointer bg-brand font-semibold hover:bg-brand/85"
               >
-                {isRedirecting ? "Redirecting…" : `Pay $${total}`}
+                {`Pay $${total}`}
                 <ArrowRight className="size-4" data-icon="inline-end" />
               </Button>
 
