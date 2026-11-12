@@ -64,7 +64,7 @@ export default function PostJobPage() {
   const setField = <K extends keyof JobForm>(key: K, value: JobForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }))
 
-  /** Splits multiline text (one item per line) into a clean array of strings. */
+
   const splitLines = (text: string) =>
     text
       .split("\n")
@@ -96,6 +96,7 @@ export default function PostJobPage() {
         description: result.error || "An error occurred while posting the job.",
         type: "destructive",
       })
+      return;
     }
   }
 

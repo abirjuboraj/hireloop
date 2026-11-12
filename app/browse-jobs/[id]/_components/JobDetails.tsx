@@ -20,6 +20,7 @@ import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/toast"
 import { applyToJob } from "@/lib/actions/applications"
+import { getApplicationCount } from "@/lib/api/applications"
 
 type JobDetailsProps = {
   job: JobPost
@@ -115,7 +116,7 @@ export function JobDetails({ job }: JobDetailsProps) {
   //   console.log("Bookmark toggled for job:", job._id)
   // }
 
-  const handleApply = async() => {
+  const handleApply = async () => {
     console.log("Applied to job:", job._id)
 
     if (!user) {
@@ -129,36 +130,45 @@ export function JobDetails({ job }: JobDetailsProps) {
       )
       return
     } else if (user.role === "seeker") {
-      // Job snapshot at apply-time — seeker identity is injected by applyToJob
-      // from the frontend session; recruiterId comes from the job (or null).
-      const application: ApplicationPayload = {
-        jobId: job._id,
-        recruiterId: job.recruiterId ?? null,
-        title: job.title,
-        companyName: job.companyName,
-        category: job.category,
-        jobType: job.jobType,
-        isRemote: job.isRemote,
-        location: job.location,
+      // no of jobs applied by this user
+
+      const appliedCount = await getApplicationCount(`seekerId = ${user.id}`)
+
+      if (appliedCount.count > 10) {
+        //redirect to payment page
+
+        router.push("/dashboard/seeker/billing")
+      } else {
+        // Job snapshot at apply-time — seeker identity is injected by applyToJob
+        // from the frontend session; recruiterId comes from the job (or null).
+        const application: ApplicationPayload = {
+          jobId: job._id,
+          recruiterId: job.recruiterId ?? null,
+          title: job.title,
+          companyName: job.companyName,
+          category: job.category,
+          jobType: job.jobType,
+          isRemote: job.isRemote,
+          location: job.location,
+        }
+
+        const res = await applyToJob(application)
+
+        if (res.success || res.insertedId) {
+          toast.add({
+            title: "Job Apply Successful",
+            description: `You have successfully applied for the job ${job.title}`,
+            type: "success",
+          })
+
+          router.push("/payment")
+        }
       }
-
-      const res = await applyToJob(application);
-
-      if(res.success || res.insertedId){
-        toast.add({
-          title: "Job Apply Successful",
-          description: `You have successfully applied for the job ${job.title}`,
-          type: "success"
-        })
-
-        router.push("/dashboard/seeker/applications");
-      }
-
-    }else{
+    } else {
       toast.add({
         title: "Apply Denied",
         description: "Only Job Seekers are allowed to apply",
-        type: "error"
+        type: "error",
       })
     }
   }
@@ -214,7 +224,7 @@ export function JobDetails({ job }: JobDetailsProps) {
                   // onClick={handleToggleBookmark}
                   aria-pressed={isBookmarked}
                   aria-label={isBookmarked ? "Remove bookmark" : "Save job"}
-                  className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-black text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+                  className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-lg border border-border bg-black text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <Bookmark
                     className={cn(
@@ -226,7 +236,7 @@ export function JobDetails({ job }: JobDetailsProps) {
                 <Button
                   type="button"
                   onClick={handleApply}
-                  className="h-10 rounded-lg bg-white px-5 text-sm font-semibold text-black hover:bg-white/90 cursor-pointer"
+                  className="h-10 cursor-pointer rounded-lg bg-white px-5 text-sm font-semibold text-black hover:bg-white/90"
                 >
                   Apply Now
                 </Button>
@@ -236,7 +246,11 @@ export function JobDetails({ job }: JobDetailsProps) {
 
           {/* Quick facts */}
           <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <MetaTile icon={Banknote} label={`Salary Range (${job.frequency})`} value={salary} />
+            <MetaTile
+              icon={Banknote}
+              label={`Salary Range (${job.frequency})`}
+              value={salary}
+            />
             <MetaTile icon={MapPin} label="Location" value={locationText} />
             <MetaTile icon={Briefcase} label="Job Type" value={job.jobType} />
             <MetaTile

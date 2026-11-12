@@ -11,3 +11,10 @@ export const getApplications = async (query: string = "") => {
         console.error("Error fetching applications:", error);
     }
 }
+
+
+export const getApplicationCount = async (query: string = ""): Promise<{count: number}>=> {
+    const res = await fetch(`${AUTH_URL}/applications/count?${query}`);
+
+    return res.json();
+}

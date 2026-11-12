@@ -37,7 +37,7 @@ const BrowseJobsPage = async ({
         {/* Search hero */}
         <SearchBar />
 
-        <div className="mt-6 grid items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           {/* Filters — becomes a collapsible panel below `lg`.
               Suspense boundary is required because the sidebar reads useSearchParams. */}
           <Suspense>

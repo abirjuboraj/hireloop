@@ -232,6 +232,7 @@ export function Navbar() {
                     return (
                       <li key={link.href}>
                         <SheetClose
+                          nativeButton={false}
                           render={
                             <Link
                               href={link.href}
@@ -271,6 +272,7 @@ export function Navbar() {
               ) : (
                 <>
                   <SheetClose
+                    nativeButton={false}
                     render={
                       <Link href="/sign-in" className="w-full">
                         <Button
@@ -283,6 +285,7 @@ export function Navbar() {
                     }
                   />
                   <SheetClose
+                    nativeButton={false}
                     render={
                       <Link href="/sign-up" className="w-full">
                         <Button className="h-11 w-full rounded-xl bg-brand text-base font-medium text-white hover:bg-brand/85">
