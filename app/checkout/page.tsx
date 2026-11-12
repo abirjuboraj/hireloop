@@ -1,6 +1,6 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Suspense, useState } from "react"
 import {
@@ -89,6 +89,8 @@ function PaymentPage() {
   const planKey = searchParams.get("plan")?.toLowerCase() ?? "growth"
   const plan = PLANS[planKey] ?? PLANS.growth
 
+  const router = useRouter();
+
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly")
   const [isRedirecting, setIsRedirecting] = useState(false)
 
@@ -108,7 +110,7 @@ function PaymentPage() {
       description: "You will be taken to a secure checkout page to complete your payment.",
       type: "info",
     })
-    window.location.assign(STRIPE_CHECKOUT_URL)
+    router.push(STRIPE_CHECKOUT_URL)
   }
 
   return (
@@ -217,9 +219,9 @@ function PaymentPage() {
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Yearly discount (25%)</dt>
+                <dt className="text-muted-foreground">{billingCycle === "monthly" ? "Monthly" : "Yearly"} discount ({billingCycle === "monthly" ? 0 : (YEARLY_DISCOUNT * 100)}%)</dt>
                 <dd className="font-medium text-brand">
-                  −${plan.price * (billingCycle === "monthly" ? 0 : 12) - total}
+                  −${plan.price * (billingCycle === "monthly" ? 0 : 12) - (billingCycle === "monthly" ? 0 : total)}
                 </dd>
               </div>
               <div className="flex items-baseline justify-between border-t border-border pt-3">

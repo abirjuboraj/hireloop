@@ -129,15 +129,18 @@ export function JobDetails({ job }: JobDetailsProps) {
         `/sign-in?callback=${encodeURIComponent(`/browse-jobs/${job._id}`)}`
       )
       return
-    } else if (user.role === "seeker") {
-      // no of jobs applied by this user
+    }
+     else if (user.role === "seeker") {
 
-      const appliedCount = await getApplicationCount(`seekerId = ${user.id}`)
+      const appliedCount = await getApplicationCount(`seekerId=${user.id}`)
 
-      if (appliedCount.count > 10) {
-        //redirect to payment page
-
-        router.push("/dashboard/seeker/billing")
+      if (appliedCount.count > 2) {
+        toast.add({
+          title: "Payment Required",
+          description: "Choose a plan",
+          type: "info"
+        })
+        router.push("/checkout");
       } else {
         // Job snapshot at apply-time — seeker identity is injected by applyToJob
         // from the frontend session; recruiterId comes from the job (or null).
@@ -161,7 +164,7 @@ export function JobDetails({ job }: JobDetailsProps) {
             type: "success",
           })
 
-          router.push("/payment")
+          router.push("/dashboard/seeker/applications")
         }
       }
     } else {

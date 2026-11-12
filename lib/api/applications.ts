@@ -14,6 +14,8 @@ export const getApplications = async (query: string = "") => {
 
 
 export const getApplicationCount = async (query: string = ""): Promise<{count: number}>=> {
+    console.log(query);
+
     const res = await fetch(`${AUTH_URL}/applications/count?${query}`);
 
     return res.json();
