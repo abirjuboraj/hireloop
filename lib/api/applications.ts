@@ -5,18 +5,28 @@ export const getApplications = async (query: string = "") => {
     try {
         const res = await fetch(`${AUTH_URL}/applications?${query}`);
 
-        const applicationsData = await res.json();
-        return applicationsData;
+        const {applications} = await res.json();
+        return applications;
     } catch (error) {
         console.error("Error fetching applications:", error);
     }
 }
 
 
-export const getApplicationCount = async (query: string = ""): Promise<{count: number}>=> {
-    console.log(query);
+export const getApplicationCount = async (query: string = ""): Promise<{count: number} | undefined> => {
+    try {
+        console.log(`[applications] Fetching application count (${query || "no filter"})`)
+        const res = await fetch(`${AUTH_URL}/applications/count?${query}`);
 
-    const res = await fetch(`${AUTH_URL}/applications/count?${query}`);
+        if (!res.ok) {
+            console.error(`[applications] Count request failed with status ${res.status}`)
+            return undefined
+        }
 
-    return res.json();
+        const data = await res.json();
+        console.log(`[applications] Application count: ${data?.count ?? 0}`)
+        return data;
+    } catch (error) {
+        console.error("[applications] Error fetching application count:", error);
+    }
 }

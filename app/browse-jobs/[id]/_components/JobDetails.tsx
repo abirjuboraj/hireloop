@@ -17,10 +17,12 @@ import { Button } from "@/components/ui/button"
 import type { ApplicationPayload, JobPost } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { useSession } from "@/lib/auth-client"
+import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/toast"
 import { applyToJob } from "@/lib/actions/applications"
 import { getApplicationCount } from "@/lib/api/applications"
+import { getUserPlan } from "@/lib/api/user"
 
 type JobDetailsProps = {
   job: JobPost
@@ -119,7 +121,16 @@ export function JobDetails({ job }: JobDetailsProps) {
   const handleApply = async () => {
     console.log("Applied to job:", job._id)
 
-    if (!user) {
+    // The useSession hook may still be pending right after page load, which
+    // would wrongly show "Sign-in required" to a signed-in user. Re-check the
+    // real session before giving up.
+    let currentUser = user
+    if (!currentUser) {
+      const { data: freshSession } = await authClient.getSession()
+      currentUser = freshSession?.user
+    }
+
+    if (!currentUser) {
       toast.add({
         type: "info",
         title: "Sign-in required",
@@ -130,18 +141,24 @@ export function JobDetails({ job }: JobDetailsProps) {
       )
       return
     }
-     else if (user.role === "seeker") {
+     else if (currentUser.role === "seeker") {
 
-      const appliedCount = await getApplicationCount(`seekerId=${user.id}`)
+      const userPlan = await getUserPlan(currentUser.id)
 
-      if (appliedCount.count > 2) {
-        toast.add({
-          title: "Payment Required",
-          description: "Choose a plan",
-          type: "info"
-        })
-        router.push("/checkout");
-      } else {
+      const appliedCount = await getApplicationCount(`seekerId=${currentUser.id}`)
+
+      // A plan user (any plan) may always apply. Free users are granted their
+      // first two applications; after that, applying requires a plan, so they
+      // are sent to the checkout page (which itself gates unpaid users who
+      // haven't reached the limit yet).
+      const hasPlan = Boolean(
+        userPlan?.plan || userPlan?.starter || userPlan?.growth || userPlan?.premium
+      )
+      console.log(
+        `[apply] User ${currentUser.id} — plan: ${userPlan?.plan ?? "none"}, applications: ${appliedCount?.count ?? 0}`
+      )
+
+      if (hasPlan || (appliedCount?.count ?? 0) < 2) {
         // Job snapshot at apply-time — seeker identity is injected by applyToJob
         // from the frontend session; recruiterId comes from the job (or null).
         const application: ApplicationPayload = {
@@ -166,13 +183,17 @@ export function JobDetails({ job }: JobDetailsProps) {
 
           router.push("/dashboard/seeker/applications")
         }
+      } else {
+        toast.add({
+          title: "Payment Required",
+          description: "You've used your 2 free applications — choose a plan to keep applying",
+          type: "info"
+        })
+        console.log(
+          `[apply] Free limit reached for user ${currentUser.id} — redirecting to checkout`
+        )
+        router.push("/checkout");
       }
-    } else {
-      toast.add({
-        title: "Apply Denied",
-        description: "Only Job Seekers are allowed to apply",
-        type: "error",
-      })
     }
   }
 

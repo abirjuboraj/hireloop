@@ -8,6 +8,7 @@ export async function applyToJob(data: ApplicationPayload) {
     const { data: session } = await authClient.getSession()
     const user = session?.user
 
+    console.log(`[apply] Submitting application for job ${data.jobId}`)
     const res = await fetch(`${AUTH_URL}/applications`, {
       method: "POST",
       headers: {
@@ -20,8 +21,10 @@ export async function applyToJob(data: ApplicationPayload) {
       }),
     })
 
-    return res.json()
+    const result = await res.json()
+    console.log("[apply] Application response:", result)
+    return result
   } catch (error) {
-    console.log(error);
+    console.error("[apply] Error submitting application:", error);
   }
 }
