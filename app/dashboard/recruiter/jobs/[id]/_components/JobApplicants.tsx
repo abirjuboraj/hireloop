@@ -25,7 +25,7 @@ import { updateApplicationStatus } from "@/lib/actions/applications"
 import { ApplicantStatusBadge } from "./ApplicantStatusBadge"
 import { ApplicantStatusSelect } from "./ApplicantStatusSelect"
 
-// Every status a recruiter can filter by. "All" shows everything.
+
 const STATUS_FILTERS: Array<ApplicationStatus | "All"> = [
   "All",
   "Applied",
@@ -85,23 +85,21 @@ export function JobApplicants({ job }: { job: JobPost }) {
    * instant) and calls the shared action — which currently only logs, because
    * the database update endpoint is still TODO in the backend.
    */
-  const handleStatusChange = (
+  const handleStatusChange = async (
     application: Application,
     nextStatus: ApplicationStatus
   ) => {
     if (nextStatus === application.status) return
 
-    // 1. Update the UI immediately (optimistic update).
+   const updateStatus =await updateApplicationStatus(application._id, nextStatus)
+
+   if(updateStatus.success){
     setApplications((previous) =>
       previous.map((item) =>
         item._id === application._id ? { ...item, status: nextStatus } : item
       )
     )
-
-    // 2. Fire the handler (backend update is TODO there).
-    updateApplicationStatus(application._id, nextStatus)
-
-    // 3. Tell the recruiter it worked.
+   }
     toast.add({
       title: "Status updated",
       description: `${applicantName(application)} moved to ${nextStatus}.`,
