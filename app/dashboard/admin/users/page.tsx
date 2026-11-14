@@ -1,15 +1,20 @@
-import { getUsers } from '@/lib/api/user';
-import React from 'react';
+import { getUsers } from "@/lib/api/admin-users"
 
-const AdminUsersPage = async() => {
+import { UserManagement } from "./_components/UserManagement"
 
-    const users = await getUsers();
-    console.log("users", users)
-    return (
-        <div>
-            Admin Users Page
-        </div>
-    );
-};
+/**
+ * Admin > User Management page.
+ *
+ * The users list is fetched on the SERVER with better-auth's admin API
+ * (lib/api/user.ts → getUsers) because that call needs the signed-in admin's
+ * session cookies. The interactive UI (search, filters, role changes, …)
+ * lives in the client component below.
+ */
+const AdminUsersPage = async () => {
+  // null when the fetch fails (e.g. the signed-in user is not an admin yet)
+  const users = await getUsers()
 
-export default AdminUsersPage;
+  return <UserManagement initialUsers={users} />
+}
+
+export default AdminUsersPage

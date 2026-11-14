@@ -15,6 +15,25 @@ export function resolveUserRole(role?: string | null): UserRole {
   return role === "recruiter" || role === "admin" ? role : "seeker"
 }
 
+/**
+ * A user row as shown in the admin's User Management table.
+ * Comes from better-auth's admin list-users API (see lib/api/user.ts).
+ */
+export type AdminUser = {
+  id: string
+  name: string
+  email: string
+  /** "seeker" | "recruiter" | "admin" — better-auth additional field. */
+  role?: string | null
+  /** Profile image URL — null unless the user has one. */
+  image?: string | null
+  /** better-auth admin plugin: true while the user is suspended (banned). */
+  banned?: boolean | null
+  banReason?: string | null
+  /** When the account was created (Date object or ISO string). */
+  createdAt: string | Date
+}
+
 export const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"] as const
 
 export type JobType = (typeof JOB_TYPES)[number]

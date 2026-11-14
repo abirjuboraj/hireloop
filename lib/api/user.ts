@@ -1,6 +1,4 @@
-import { headers } from "next/headers"
 import { AUTH_URL } from "../actions/jobs"
-import { auth } from "../auth"
 
 /**
  * The shape returned by the backend's GET /users/:id/plan endpoint
@@ -32,17 +30,4 @@ export const getUserPlan = async (userId: string): Promise<UserPlan | null> => {
     console.error("[user-plan] Error fetching user plan:", error)
     return null
   }
-};
-
-
-export const getUsers = async()=> {
-  const users = await auth.api.listUsers({
-    query: {
-        sortBy: "name", // The field to sort by.
-        sortDirection: "desc", // The direction to sort by.
-        
-    },
-    // This endpoint requires session cookies.
-    headers: await headers(),
-});
 }
