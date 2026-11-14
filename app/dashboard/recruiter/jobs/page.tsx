@@ -4,8 +4,8 @@ import Link from "next/link"
 import {
   Banknote,
   Briefcase,
+  ChevronRight,
   Code2,
-  EllipsisVertical,
   Eye,
   Globe,
   MapPin,
@@ -19,12 +19,7 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+
 import {
   Table,
   TableBody,
@@ -40,10 +35,11 @@ import DeleteDialog from "@/app/components/DeleteDialog"
 import { deleteJob } from "@/lib/actions/jobs"
 import { toast } from "@/components/ui/toast"
 import { useRouter } from "next/navigation"
+import { useSession } from "@/lib/auth-client"
 
 const categoryMeta: Record<string, { icon: typeof Code2; color: string }> = {
-  "Engineering, Tech": { icon: Code2, color: "text-blue-400" },
-  "Design, Creative": { icon: PenTool, color: "text-orange-400" },
+  "Engineering & Tech": { icon: Code2, color: "text-blue-400" },
+  "Design & Creative": { icon: PenTool, color: "text-orange-400" },
   Marketing: { icon: Megaphone, color: "text-violet-400" },
   Finance: { icon: Banknote, color: "text-emerald-400" },
   Other: { icon: Briefcase, color: "text-muted-foreground" },
@@ -69,11 +65,15 @@ export default function ManageJobsPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedJob, setSelectedJob] = useState<JobPost | null>(null)
 
+  const { data: session } = useSession()
+
+  const userId = session?.user.id
+
   const router = useRouter()
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const jobPosts = await getJobs()
+        const jobPosts = await getJobs(`recruiterId=${userId}`)
         if (jobPosts) {
           setFetchedJobs(jobPosts)
         }
@@ -82,7 +82,7 @@ export default function ManageJobsPage() {
       }
     }
     fetchJobs()
-  }, [])
+  }, [userId])
 
   const handleDeleteConfirm = async () => {
     if (!selectedJob) return
@@ -217,13 +217,19 @@ export default function ManageJobsPage() {
                       / {frequencySuffix[job.frequency] ?? job.frequency}
                     </span>
                   </TableCell>
-
-                  {/* Applicants */}
                   <TableCell>
-                    <p className="flex items-center gap-1.5 text-sm font-medium">
-                      <Users className="size-3.5 text-muted-foreground" />
-                      {job.applicants} Candidates
-                    </p>
+                    <Link
+                      href={`/dashboard/recruiter/jobs/${job._id}`}
+                      aria-label={`View applicants for ${job.title}`}
+                      className="group inline-flex w-fit items-center gap-2 whitespace-nowrap rounded-full border border-brand/40 bg-brand/15 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand/25"
+                    >
+                      <Users className="size-3.5 shrink-0 text-brand" />
+                      <span>
+                        {job.applicants}{" "}
+                        {job.applicants === 1 ? "Candidate" : "Candidates"}
+                      </span>
+                      <ChevronRight className="size-3.5 shrink-0 text-brand transition-transform group-hover:translate-x-0.5" />
+                    </Link>
                   </TableCell>
 
                   {/* Status */}
@@ -255,24 +261,26 @@ export default function ManageJobsPage() {
                     <div className="flex items-center justify-end gap-1">
                       <Button
                         size="sm"
-                        className="border border-brand/40 bg-brand/15 text-white hover:bg-brand/25"
+                        className="border border-brand/40 bg-brand/15 text-white hover:bg-brand/25 cursor-pointer"
                       >
                         <Pencil className="size-3.5" />
                         Update
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-brand"
-                        aria-label={`View ${job.title}`}
-                      >
-                        <Eye className="size-4" />
-                      </Button>
+                      <Link href={`/browse-jobs/${job._id}`}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-brand cursor-pointer"
+                          aria-label={`View ${job.title}`}
+                        >
+                          <Eye className="size-4" />
+                        </Button>
+                      </Link>
                       <Button
                         variant="ghost"
                         size="icon"
                         aria-label={`Delete ${job.title}`}
-                        className="text-muted-foreground hover:text-red-400"
+                        className="text-muted-foreground hover:text-red-400 cursor-pointer"
                         onClick={() => {
                           setSelectedJob(job)
                           setIsDeleteOpen(true)

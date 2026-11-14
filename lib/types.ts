@@ -92,4 +92,9 @@ export type Application = Omit<ApplicationPayload, "seekerId"> & {
   /** ISO date string of when the seeker applied. */
   appliedAt: string
   archived?: boolean
+  /**
+   * Only present for recruiters: the backend looks up each applicant's user
+   * document and attaches their name (applications themselves don't store it).
+   */
+  applicantName?: string | null
 }

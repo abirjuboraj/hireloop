@@ -5,7 +5,7 @@ export const AUTH_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:500
 
 export const createJob = async( data: JobForm) => {
     try {
-        // User identity comes from the frontend session for now (JWT later).
+  
         const { data: session } = await authClient.getSession()
         const user = session?.user
 
