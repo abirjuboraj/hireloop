@@ -188,12 +188,10 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
 
     console.log(`[admin-users] ${nextBanned ? "Suspending" : "Activating"}: ${user.email}`)
 
-    // 1. Update the UI right away (optimistic update).
     setUsers((previous) =>
       previous.map((item) => (item.id === user.id ? { ...item, banned: nextBanned } : item))
     )
 
-    // 2. Save it in the database through the backend.
     try {
       const result = await updateUserBan(user.id, nextBanned)
       console.log("[admin-users] Ban update response:", result)
@@ -236,11 +234,9 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
 
     console.log(`[admin-users] Deleting user: ${userBeingDeleted.email}`)
 
-    // 1. Remove the row from the UI right away and close the dialog.
     setUsers((previous) => previous.filter((item) => item.id !== userBeingDeleted.id))
     setUserToDelete(null)
 
-    // 2. Delete the user from the database through the backend.
     try {
       const result = await deleteUser(userBeingDeleted.id)
       console.log("[admin-users] Delete response:", result)

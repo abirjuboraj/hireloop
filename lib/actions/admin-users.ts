@@ -10,8 +10,8 @@ export const updateUserRole = async(userId: string, role: "seeker" | "recruiter"
     return res.json();
 }
 
-// Suspend (banned: true) or activate (banned: false) a user.
-// There is no "status" field in the database — `banned` IS the status.
+
+
 export const updateUserBan = async(userId: string, banned: boolean) => {
     const res = await fetch(`${AUTH_URL}/users/${userId}/ban`, {
         method: "PATCH",
