@@ -1,31 +1,26 @@
+'use server'
+
 import { AUTH_URL } from "./jobs"
 import { ApplicationPayload, ApplicationStatus } from "../types"
-import { authClient } from "@/lib/auth-client"
+import { getSession, protectedMutation } from "../core/server"
 
 export async function applyToJob(data: ApplicationPayload) {
   try {
-    // User identity comes from the frontend session for now (JWT later).
-    const { data: session } = await authClient.getSession()
+    const session = await getSession()
     const user = session?.user
 
-    console.log(`[apply] Submitting application for job ${data.jobId}`)
-    const res = await fetch(`${AUTH_URL}/applications`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        ...data,
-        seekerId: user?.id,
-        seekerEmail: user?.email,
-      }),
+    const api = `${AUTH_URL}/applications`
+
+    const result = await protectedMutation(api, "POST", {
+      ...data,
+      seekerId: user?.id,
+      seekerEmail: user?.email,
     })
 
-    const result = await res.json()
-    console.log("[apply] Application response:", result)
     return result
   } catch (error) {
     console.error("[apply] Error submitting application:", error)
+    return { success: false, message: "Error submitting application" }
   }
 }
 
@@ -40,12 +35,12 @@ export async function updateApplicationStatus(
       body: JSON.stringify({ status }),
     })
     console.log(
-    `[applications] Status change requested: ${applicationId} → ${status}`
-  )
+      `[applications] Status change requested: ${applicationId} → ${status}`
+    )
     return res.json()
   } catch (error) {
     return error
   }
-  
+
 
 }

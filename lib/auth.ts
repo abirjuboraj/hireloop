@@ -16,12 +16,6 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
-      role: {
-        type: "string",
-        required: false,
-        defaultValue: "seeker",
-        input: true,
-      },
       companyName: {
         type: "string",
         required: false,
@@ -29,7 +23,11 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [admin()],
+  plugins: [
+    admin({
+      defaultRole: "seeker",
+    }),
+  ],
 });
 
 export type Auth = typeof auth;

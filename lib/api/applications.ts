@@ -1,11 +1,15 @@
+'use server'
+
 import { AUTH_URL } from "../actions/jobs"
+import { authFetch} from "../core/server";
 
 
 export const getApplications = async (query: string = "") => {
     try {
-        const res = await fetch(`${AUTH_URL}/applications?${query}`);
+        const api = `${AUTH_URL}/applications?${query}`
 
-        const {applications} = await res.json();
+        const data = await authFetch(api);
+        const {applications} = data;
         return applications;
     } catch (error) {
         console.error("Error fetching applications:", error);
@@ -15,7 +19,6 @@ export const getApplications = async (query: string = "") => {
 
 export const getApplicationCount = async (query: string = ""): Promise<{count: number} | undefined> => {
     try {
-        console.log(`[applications] Fetching application count (${query || "no filter"})`)
         const res = await fetch(`${AUTH_URL}/applications/count?${query}`);
 
         if (!res.ok) {
@@ -24,31 +27,19 @@ export const getApplicationCount = async (query: string = ""): Promise<{count: n
         }
 
         const data = await res.json();
-        console.log(`[applications] Application count: ${data?.count ?? 0}`)
+
         return data;
     } catch (error) {
         console.error("[applications] Error fetching application count:", error);
     }
 }
 
-
-/**
- * Fetch every application for ONE job — this is the recruiter's applicants
- * list. The backend also attaches each applicant's name (applicantName).
- */
+// for recruiter
 export const getJobApplications = async (jobId: string) => {
     try {
-        console.log(`[applications] Fetching applicants for job: ${jobId}`)
-        const res = await fetch(`${AUTH_URL}/applications?jobId=${jobId}`)
 
-        if (!res.ok) {
-            console.error(`[applications] Applicants request failed with status ${res.status}`)
-            return undefined
-        }
+        const data = await authFetch(`${AUTH_URL}/applications?jobId=${jobId}`)
 
-        const data = await res.json()
-        console.log(`[applications] Found ${data?.applications?.length ?? 0} applicants for job ${jobId}`)
-        // Same response shape as getApplications → { applications: [...] }
         return data?.applications
     } catch (error) {
         console.error("[applications] Error fetching job applicants:", error)

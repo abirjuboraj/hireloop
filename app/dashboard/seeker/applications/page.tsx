@@ -32,7 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { getApplications } from "@/lib/api/applications"
+import { getApplications} from "@/lib/api/applications"
 import { useSession } from "@/lib/auth-client"
 import type { Application, ApplicationStatus } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -104,7 +104,7 @@ export default function MyApplicationsPage() {
 
     const fetchApplications = async () => {
       try {
-        setIsLoading(true)
+        setIsLoading(true) 
 
         const params = new URLSearchParams()
         params.set("seekerId", user.id)
@@ -113,7 +113,6 @@ export default function MyApplicationsPage() {
 
         const data = await getApplications(params.toString())
 
-        // The API may return a plain array or a wrapper — normalize defensively.
         const list: Application[] = Array.isArray(data)
           ? data
           : Array.isArray(data?.applications)

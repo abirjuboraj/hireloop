@@ -58,11 +58,15 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     try {
+      // NOTE: we do NOT send `role` to better-auth here — its admin plugin
+      // does not allow setting a role at signup ("role is not allowed to be
+      // set"). Everyone is created as a seeker (defaultRole in lib/auth.ts)
+      // and recruiters are promoted right after, using our own backend
+      // role endpoint.
       const { data, error } = await signUp.email({
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: role,
         companyName: role === "recruiter" ? formData.companyName : undefined,
         callbackURL: "/sign-in",
       })
@@ -73,7 +77,22 @@ export default function SignUpPage() {
         return
       }
 
-      console.log("Account created successfully with role:", role, data)
+      console.log("Account created successfully:", data)
+
+      // A recruiter chose the "Recruiter" tab on this form — promote the
+      // fresh account from seeker to recruiter through our Express backend.
+      if (role === "recruiter" && data?.user?.id) {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+
+        const res = await fetch(`${apiUrl}/users/${data.user.id}/role`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ role: "recruiter" }),
+        })
+        const result = await res.json()
+        console.log("[sign-up] Recruiter role update response:", result)
+      }
+
       router.push("/sign-in")
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "An unexpected error occurred"

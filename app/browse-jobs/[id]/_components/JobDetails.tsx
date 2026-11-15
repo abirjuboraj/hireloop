@@ -51,10 +51,10 @@ function formatDate(date: string) {
   return Number.isNaN(parsed.getTime())
     ? date
     : parsed.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
 }
 
 /** Small uppercase label + value tile used in the quick-facts row. */
@@ -119,11 +119,7 @@ export function JobDetails({ job }: JobDetailsProps) {
   // }
 
   const handleApply = async () => {
-    console.log("Applied to job:", job._id)
 
-    // The useSession hook may still be pending right after page load, which
-    // would wrongly show "Sign-in required" to a signed-in user. Re-check the
-    // real session before giving up.
     let currentUser = user
     if (!currentUser) {
       const { data: freshSession } = await authClient.getSession()
@@ -141,26 +137,19 @@ export function JobDetails({ job }: JobDetailsProps) {
       )
       return
     }
-     else if (currentUser.role === "seeker") {
+    else if (currentUser.role === "seeker") {
 
       const userPlan = await getUserPlan(currentUser.id)
 
       const appliedCount = await getApplicationCount(`seekerId=${currentUser.id}`)
 
-      // A plan user (any plan) may always apply. Free users are granted their
-      // first two applications; after that, applying requires a plan, so they
-      // are sent to the checkout page (which itself gates unpaid users who
-      // haven't reached the limit yet).
       const hasPlan = Boolean(
         userPlan?.plan || userPlan?.starter || userPlan?.growth || userPlan?.premium
       )
-      console.log(
-        `[apply] User ${currentUser.id} — plan: ${userPlan?.plan ?? "none"}, applications: ${appliedCount?.count ?? 0}`
-      )
+
 
       if (hasPlan || (appliedCount?.count ?? 0) < 2) {
-        // Job snapshot at apply-time — seeker identity is injected by applyToJob
-        // from the frontend session; recruiterId comes from the job (or null).
+
         const application: ApplicationPayload = {
           jobId: job._id,
           recruiterId: job.recruiterId ?? null,
@@ -174,7 +163,9 @@ export function JobDetails({ job }: JobDetailsProps) {
 
         const res = await applyToJob(application)
 
-        if (res.success || res.insertedId) {
+        console.log(res);
+
+        if (res?.success || res?.insertedId) {
           toast.add({
             title: "Job Apply Successful",
             description: `You have successfully applied for the job ${job.title}`,
@@ -182,6 +173,12 @@ export function JobDetails({ job }: JobDetailsProps) {
           })
 
           router.push("/dashboard/seeker/applications")
+        } else {
+          toast.add({
+            title: "Application Failed",
+            description: res?.message || "Could not submit your application. Please try again.",
+            type: "destructive",
+          })
         }
       } else {
         toast.add({
