@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
 import {
   Ban,
   Download,
@@ -33,7 +32,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { toast } from "@/components/ui/toast"
-import { authClient, useSession } from "@/lib/auth-client"
+import { useSession } from "@/lib/auth-client"
+import { updateUserRole, updateUserBan, deleteUser } from "@/lib/actions/admin-users"
 import { USER_ROLES, resolveUserRole, type AdminUser, type UserRole } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -77,27 +77,21 @@ function UserStatusBadge({ banned }: { banned?: boolean | null }) {
   )
 }
 
-/**
- * The whole User Management screen.
- * Data arrives from the server page (better-auth listUsers). Every action
- * below calls better-auth's admin client API and then `router.refresh()`
- * so the server page re-fetches the fresh list.
- */
+
 export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | null }) {
-  const router = useRouter()
   const { data: session } = useSession()
 
-  // The signed-in admin's own id — used to stop anyone editing their own
-  // row (changing your own role could lock you out of the admin panel).
   const myId = session?.user?.id
 
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null)
 
-  // null means the server fetch failed (usually: signed-in user is not an admin)
+ 
   const loadFailed = initialUsers === null
-  const users = useMemo(() => initialUsers ?? [], [initialUsers])
+
+ 
+  const [users, setUsers] = useState<AdminUser[]>(initialUsers ?? [])
 
   // ── Filtering: email search + role filter, both done in the browser ──
   const filteredUsers = useMemo(() => {
@@ -149,93 +143,131 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
     ]
   }, [users])
 
-  /** Shared error handling for the better-auth admin calls below. */
-  const showError = (action: string, error: { message?: string } | null) => {
-    console.error(`[admin-users] ${action} failed:`, error)
-    toast.add({
-      title: `${action} failed`,
-      description: error?.message ?? "Something went wrong. Please try again.",
-      type: "error",
-    })
-  }
-
-  // ── Action handlers (better-auth admin plugin) ──
-
-  /** Switch a user between seeker / recruiter / admin. */
   const handleRoleChange = async (user: AdminUser, next: UserRole) => {
     if (next === resolveUserRole(user.role)) return
 
-    console.log(`[admin-users] Role change: ${user.email} → ${next}`)
-    // better-auth's client types only know its built-in "user" | "admin"
-    // roles, but this app stores custom roles (seeker / recruiter / admin)
-    // in the `role` field — the backend accepts any role string, so we cast.
-    const { error } = await authClient.admin.setRole({
-      userId: user.id,
-      role: next as "user" | "admin",
-    })
+    setUsers((previous) =>
+      previous.map((item) => (item.id === user.id ? { ...item, role: next } : item))
+    )
+    try {
+      const result = await updateUserRole(user.id, next)
+      console.log("[admin-users] Role update response:", result)
 
-    if (error) return showError("Role change", error)
+      if (result?.success === false) {
+        console.error("[admin-users] Backend rejected the change:", result)
+        toast.add({
+          title: "Role change failed",
+          description: result?.message ?? "The backend rejected the request.",
+          type: "error",
+        })
+        return
+      }
 
-    toast.add({
-      title: "Role updated",
-      description: `${user.name} is now a ${next}.`,
-      type: "success",
-    })
-    router.refresh()
+      toast.add({
+        title: "Role updated",
+        description: `${user.name} is now a ${next}.`,
+        type: "success",
+      })
+    } catch (error) {
+      console.log(error)
+      toast.add({
+        title: "Role update failed",
+        description: `The role update for ${user.name} to ${next} failed` ,
+        type: "error",
+      })
+    }
   }
 
-  /** Suspended users can't sign in (better-auth "ban"). */
-  const handleSuspend = async (user: AdminUser) => {
-    console.log(`[admin-users] Suspending: ${user.email}`)
-    const { error } = await authClient.admin.banUser({
-      userId: user.id,
-      banReason: "Suspended by an admin",
-    })
+  /**
+   * Suspend or activate a user.
+   * There is no "status" field in the database — a suspended user is just a
+   * user whose `banned` field is true (see the backend /users/:id/ban route).
+   */
+  const handleToggleSuspension = async (user: AdminUser) => {
+    const nextBanned = !user.banned
 
-    if (error) return showError("Suspend", error)
+    console.log(`[admin-users] ${nextBanned ? "Suspending" : "Activating"}: ${user.email}`)
 
-    toast.add({
-      title: "User suspended",
-      description: `${user.name} can no longer sign in.`,
-      type: "success",
-    })
-    router.refresh()
+    // 1. Update the UI right away (optimistic update).
+    setUsers((previous) =>
+      previous.map((item) => (item.id === user.id ? { ...item, banned: nextBanned } : item))
+    )
+
+    // 2. Save it in the database through the backend.
+    try {
+      const result = await updateUserBan(user.id, nextBanned)
+      console.log("[admin-users] Ban update response:", result)
+
+      if (result?.success === false) {
+        console.error("[admin-users] Backend rejected the change:", result)
+        toast.add({
+          title: "Suspend update failed",
+          description: result?.message ?? "The backend rejected the request.",
+          type: "error",
+        })
+        return
+      }
+
+      toast.add({
+        title: nextBanned ? "User suspended" : "User activated",
+        description: nextBanned
+          ? `${user.name} can no longer sign in.`
+          : `${user.name} can sign in again.`,
+        type: "success",
+      })
+    } catch (error) {
+      console.log(error)
+      toast.add({
+        title: "Suspend update failed",
+        description: `The suspend update for ${user.name} failed`,
+        type: "error",
+      })
+    }
   }
 
-  /** Lift a suspension. */
-  const handleActivate = async (user: AdminUser) => {
-    console.log(`[admin-users] Reactivating: ${user.email}`)
-    const { error } = await authClient.admin.unbanUser({ userId: user.id })
-
-    if (error) return showError("Activate", error)
-
-    toast.add({
-      title: "User reactivated",
-      description: `${user.name} can sign in again.`,
-      type: "success",
-    })
-    router.refresh()
-  }
-
-  /** Permanently remove the user — only runs after the confirm dialog. */
+  /**
+   * Permanently remove the user — only runs after the confirm dialog.
+   * Calls the backend DELETE /users/:id route.
+   */
   const handleDelete = async () => {
     if (!userToDelete) return
 
-    console.log(`[admin-users] Deleting user: ${userToDelete.email}`)
-    const { error } = await authClient.admin.removeUser({ userId: userToDelete.id })
+    const userBeingDeleted = userToDelete
 
-    if (error) {
-      setUserToDelete(null)
-      return showError("Delete", error)
-    }
+    console.log(`[admin-users] Deleting user: ${userBeingDeleted.email}`)
 
-    toast.add({
-      title: "User deleted",
-      description: `${userToDelete.name} has been removed.`,
-      type: "success",
-    })
+    // 1. Remove the row from the UI right away and close the dialog.
+    setUsers((previous) => previous.filter((item) => item.id !== userBeingDeleted.id))
     setUserToDelete(null)
-    router.refresh()
+
+    // 2. Delete the user from the database through the backend.
+    try {
+      const result = await deleteUser(userBeingDeleted.id)
+      console.log("[admin-users] Delete response:", result)
+
+      if (result?.success === false) {
+        console.error("[admin-users] Backend rejected the change:", result)
+        toast.add({
+          title: "Delete failed",
+          description: result?.message ?? "The backend rejected the request.",
+          type: "error",
+        })
+        return
+      }
+
+      toast.add({
+        title: "User deleted",
+        description: `${userBeingDeleted.name} has been removed.`,
+        type: "success",
+      })
+    } catch (error) {
+      console.log(error)
+      toast.add({
+        title: "Delete failed",
+        description: `Deleting ${userBeingDeleted.name} failed`,
+        type: "error",
+      })
+    }
   }
 
   /** Export exactly what is on screen (search + role filter applied) to CSV. */
@@ -299,7 +331,7 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
           size="sm"
           disabled={locked}
           title={locked ? "You can't suspend your own account" : undefined}
-          onClick={() => (user.banned ? handleActivate(user) : handleSuspend(user))}
+          onClick={() => handleToggleSuspension(user)}
           className={cn(
             "cursor-pointer",
             user.banned
