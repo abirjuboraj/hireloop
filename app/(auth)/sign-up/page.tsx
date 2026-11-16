@@ -1,9 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Building2, Eye, EyeOff, Lock, Mail, ShieldCheck, User } from "lucide-react"
+import {
+  Building2,
+  Eye,
+  EyeOff,
+  ImagePlus,
+  Lock,
+  Mail,
+  Trash2,
+  User,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -19,8 +28,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { signUp } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
+import { uploadProfileImage } from "@/lib/upload"
+import { toast } from "@/components/ui/toast"
 
-type UserRole = "seeker" | "recruiter" | "admin"
+type UserRole = "seeker" | "recruiter"
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -32,8 +43,11 @@ export default function SignUpPage() {
     companyName: "",
     agreeToTerms: false,
   })
+  const [profileImage, setProfileImage] = useState<File | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const router = useRouter()
 
@@ -52,50 +66,74 @@ export default function SignUpPage() {
     }))
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProfileImage(e.target.files?.[0] ?? null)
+  }
+
+  const handleRemoveFile = () => {
+    setProfileImage(null)
+
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    if (!profileImage) {
+      toast.add({
+        title: "No profile image",
+        description: "Add a profile image",
+        type: "warning",
+      })
+      return
+    }
+
     setErrorMessage(null)
     setIsLoading(true)
 
     try {
-      // NOTE: we do NOT send `role` to better-auth here — its admin plugin
-      // does not allow setting a role at signup ("role is not allowed to be
-      // set"). Everyone is created as a seeker (defaultRole in lib/auth.ts)
-      // and recruiters are promoted right after, using our own backend
-      // role endpoint.
+      const uploadResult = await uploadProfileImage(profileImage)
+
+      if (!uploadResult.success || !uploadResult.url) {
+        throw new Error(uploadResult.message || "Image upload failed")
+      }
+
+     
+
       const { data, error } = await signUp.email({
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        role: role,
         companyName: role === "recruiter" ? formData.companyName : undefined,
+        image: uploadResult.url,
         callbackURL: "/sign-in",
       })
 
       if (error) {
-        setErrorMessage(error.message || "Failed to create account. Please try again.")
+        setErrorMessage(
+          error.message || "Failed to create account. Please try again."
+        )
         setIsLoading(false)
         return
       }
 
+      toast.add({
+        title: "Account Created",
+        description: "Successfully created your account!",
+        type: "success",
+      })
       console.log("Account created successfully:", data)
-
-      // A recruiter chose the "Recruiter" tab on this form — promote the
-      // fresh account from seeker to recruiter through our Express backend.
-      if (role === "recruiter" && data?.user?.id) {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
-
-        const res = await fetch(`${apiUrl}/users/${data.user.id}/role`, {
-          method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ role: "recruiter" }),
-        })
-        const result = await res.json()
-        console.log("[sign-up] Recruiter role update response:", result)
-      }
 
       router.push("/sign-in")
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred"
+      const message =
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      toast.add({
+        title: "Account Creation failed",
+        description: "Your account couldn't be created! Try again",
+        type: "error",
+      })
       setErrorMessage(message)
       setIsLoading(false)
     }
@@ -106,7 +144,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#000] px-4 pt-28 pb-12 sm:pt-32">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-4 pt-28 pb-12 sm:pt-32">
       {/* Background radial glow */}
       <div
         aria-hidden="true"
@@ -138,7 +176,7 @@ export default function SignUpPage() {
         </div>
 
         {/* Auth Card */}
-        <Card className="border border-white/10 bg-[#0e0e12]/80 backdrop-blur-xl shadow-2xl">
+        <Card className="border border-white/10 bg-[#0e0e12]/80 shadow-2xl backdrop-blur-xl">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold tracking-tight text-white">
               Create an Account
@@ -147,15 +185,16 @@ export default function SignUpPage() {
               Join thousands of job seekers and top companies
             </CardDescription>
 
-            {/* 3-Role Switcher */}
-            <div className="mt-4 grid grid-cols-3 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+            {/* 2-Role Switcher — new users can only be a seeker or a recruiter */}
+            <div className="mt-4 grid grid-cols-2 rounded-xl border border-white/10 bg-white/3 p-1">
               <button
                 type="button"
                 onClick={() => setRole("seeker")}
-                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${role === "seeker"
-                  ? "bg-brand text-white shadow"
-                  : "text-white/60 hover:text-white"
-                  }`}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${
+                  role === "seeker"
+                    ? "bg-brand text-white shadow"
+                    : "text-white/60 hover:text-white"
+                }`}
               >
                 <User className="size-3.5" />
                 Seeker
@@ -163,37 +202,26 @@ export default function SignUpPage() {
               <button
                 type="button"
                 onClick={() => setRole("recruiter")}
-                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${role === "recruiter"
-                  ? "bg-brand text-white shadow"
-                  : "text-white/60 hover:text-white"
-                  }`}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${
+                  role === "recruiter"
+                    ? "bg-brand text-white shadow"
+                    : "text-white/60 hover:text-white"
+                }`}
               >
                 <Building2 className="size-3.5" />
                 Recruiter
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("admin")}
-                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${role === "admin"
-                  ? "bg-brand text-white shadow"
-                  : "text-white/60 hover:text-white"
-                  }`}
-              >
-                <ShieldCheck className="size-3.5" />
-                Admin
               </button>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
-
             {/* OAuth Quick Options */}
             <div className="grid grid-cols-2 gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => handleOAuthSignUp("google")}
-                className="h-10 border-white/10 bg-white/[0.03] text-white hover:bg-white/10 hover:text-white"
+                className="h-10 border-white/10 bg-white/3 text-white hover:bg-white/10 hover:text-white"
               >
                 <svg className="mr-2 size-4" viewBox="0 0 24 24">
                   <path
@@ -220,9 +248,13 @@ export default function SignUpPage() {
                 type="button"
                 variant="outline"
                 onClick={() => handleOAuthSignUp("github")}
-                className="h-10 border-white/10 bg-white/[0.03] text-white hover:bg-white/10 hover:text-white"
+                className="h-10 border-white/10 bg-white/3 text-white hover:bg-white/10 hover:text-white"
               >
-                <svg className="mr-2 size-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="mr-2 size-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     fillRule="evenodd"
                     clipRule="evenodd"
@@ -235,7 +267,7 @@ export default function SignUpPage() {
 
             <div className="relative my-4 flex items-center justify-center">
               <div className="w-full border-t border-white/10" />
-              <span className="absolute bg-[#0e0e12] px-3 text-xs uppercase tracking-wider text-white/40">
+              <span className="absolute bg-[#0e0e12] px-3 text-xs tracking-wider text-white/40 uppercase">
                 Or continue with
               </span>
             </div>
@@ -244,7 +276,10 @@ export default function SignUpPage() {
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Full Name */}
               <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-xs font-medium text-white/80">
+                <Label
+                  htmlFor="name"
+                  className="text-xs font-medium text-white/80"
+                >
                   Full Name
                 </Label>
                 <div className="relative">
@@ -257,14 +292,55 @@ export default function SignUpPage() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="h-10 rounded-lg border-white/10 bg-white/[0.04] pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
+                    className="h-10 rounded-lg border-white/10 bg-white/4 pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
                   />
                 </div>
               </div>
 
+              {/* Profile Image */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-white/80">
+                  Profile Image{" "}
+                  <span className="font-normal text-white/40"></span>
+                </Label>
+                {/* Hidden input — the visible button below opens it */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                {profileImage ? (
+                  /* Selected file: small row with the file name + delete button */
+                  <div className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/4 px-3 py-2.5">
+                    <span className="truncate text-sm text-white/80">
+                      {profileImage.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      aria-label="Remove selected image"
+                      className="shrink-0 text-white/40 transition-colors hover:text-red-400"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex h-10 w-full cursor-pointer items-center gap-2 rounded-lg border border-dashed border-white/15 bg-white/3 px-3 text-sm text-white/50 transition-colors hover:border-brand/50 hover:text-white"
+                  >
+                    <ImagePlus className="size-4" />
+                    Choose an image from your device
+                  </button>
+                )}
+              </div>
+
               {/* Company Name (only if recruiter) */}
               {role === "recruiter" && (
-                <div className="space-y-1.5 animate-in fade-in duration-200">
+                <div className="animate-in space-y-1.5 duration-200 fade-in">
                   <Label
                     htmlFor="companyName"
                     className="text-xs font-medium text-white/80"
@@ -281,7 +357,7 @@ export default function SignUpPage() {
                       required
                       value={formData.companyName}
                       onChange={handleChange}
-                      className="h-10 rounded-lg border-white/10 bg-white/[0.04] pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
+                      className="h-10 rounded-lg border-white/10 bg-white/4 pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
                     />
                   </div>
                 </div>
@@ -289,7 +365,10 @@ export default function SignUpPage() {
 
               {/* Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-medium text-white/80">
+                <Label
+                  htmlFor="email"
+                  className="text-xs font-medium text-white/80"
+                >
                   Email Address
                 </Label>
                 <div className="relative">
@@ -302,7 +381,7 @@ export default function SignUpPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="h-10 rounded-lg border-white/10 bg-white/[0.04] pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
+                    className="h-10 rounded-lg border-white/10 bg-white/4 pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
                   />
                 </div>
               </div>
@@ -325,7 +404,7 @@ export default function SignUpPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="h-10 rounded-lg border-white/10 bg-white/[0.04] pr-10 pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
+                    className="h-10 rounded-lg border-white/10 bg-white/4 pr-10 pl-9 text-sm text-white placeholder:text-white/30 focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand"
                   />
                   <button
                     type="button"
@@ -348,7 +427,7 @@ export default function SignUpPage() {
                   required
                   checked={formData.agreeToTerms}
                   onCheckedChange={handleCheckboxChange}
-                  className="mt-0.5 border-white/20 data-[state=checked]:bg-brand data-[state=checked]:border-brand"
+                  className="mt-0.5 border-white/20 data-[state=checked]:border-brand data-[state=checked]:bg-brand"
                 />
                 <Label
                   htmlFor="agreeToTerms"
@@ -369,7 +448,7 @@ export default function SignUpPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="mt-2 h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white shadow-lg hover:bg-brand/90 disabled:opacity-50 cursor-pointer"
+                className="mt-2 h-11 w-full cursor-pointer rounded-lg bg-brand text-sm font-semibold text-white shadow-lg hover:bg-brand/90 disabled:opacity-50"
               >
                 {isLoading ? "Creating Account..." : "Create Account"}
               </Button>

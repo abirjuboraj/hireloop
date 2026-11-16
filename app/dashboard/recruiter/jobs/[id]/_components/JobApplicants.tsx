@@ -6,7 +6,7 @@ import { ChevronRight, Globe, Mail, MapPin, Users } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -237,6 +237,10 @@ export function JobApplicants({ job }: { job: JobPost }) {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="size-9">
+                          <AvatarImage
+                            src={application.applicantImage ?? undefined}
+                            alt={applicantName(application)}
+                          />
                           <AvatarFallback>
                             {applicantName(application).charAt(0).toUpperCase()}
                           </AvatarFallback>
@@ -284,6 +288,10 @@ export function JobApplicants({ job }: { job: JobPost }) {
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="size-10">
+                    <AvatarImage
+                      src={application.applicantImage ?? undefined}
+                      alt={applicantName(application)}
+                    />
                     <AvatarFallback>
                       {applicantName(application).charAt(0).toUpperCase()}
                     </AvatarFallback>

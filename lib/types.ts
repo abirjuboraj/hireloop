@@ -20,17 +20,13 @@ export function resolveUserRole(role?: string | null): UserRole {
  * Comes from better-auth's admin list-users API (see lib/api/user.ts).
  */
 export type AdminUser = {
-  id: string
+  _id: string
   name: string
   email: string
-  /** "seeker" | "recruiter" | "admin" — better-auth additional field. */
   role?: string | null
-  /** Profile image URL — null unless the user has one. */
   image?: string | null
-  /** better-auth admin plugin: true while the user is suspended (banned). */
   banned?: boolean | null
   banReason?: string | null
-  /** When the account was created (Date object or ISO string). */
   createdAt: string | Date
 }
 
@@ -108,4 +104,9 @@ export type Application = Omit<ApplicationPayload, "seekerId"> & {
    * document and attaches their name (applications themselves don't store it).
    */
   applicantName?: string | null
+  /**
+   * Applicant's profile image URL — shown on their avatar once the backend
+   * attaches it (avatar falls back to initials while it's missing).
+   */
+  applicantImage?: string | null
 }

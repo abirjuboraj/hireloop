@@ -134,7 +134,7 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
         icon: Ban,
       },
       {
-        label: "New Signups (24h)",
+        label: "New SignUps (24h)",
         value: newSignups,
         detail: "In the last 24 hours",
         detailClass: "text-amber-400",
@@ -147,10 +147,10 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
     if (next === resolveUserRole(user.role)) return
 
     setUsers((previous) =>
-      previous.map((item) => (item.id === user.id ? { ...item, role: next } : item))
+      previous.map((item) => (item._id === user._id ? { ...item, role: next } : item))
     )
     try {
-      const result = await updateUserRole(user.id, next)
+      const result = await updateUserRole(user._id, next)
       console.log("[admin-users] Role update response:", result)
 
       if (result?.success === false) {
@@ -178,22 +178,16 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
     }
   }
 
-  /**
-   * Suspend or activate a user.
-   * There is no "status" field in the database — a suspended user is just a
-   * user whose `banned` field is true (see the backend /users/:id/ban route).
-   */
+ 
   const handleToggleSuspension = async (user: AdminUser) => {
     const nextBanned = !user.banned
 
-    console.log(`[admin-users] ${nextBanned ? "Suspending" : "Activating"}: ${user.email}`)
-
     setUsers((previous) =>
-      previous.map((item) => (item.id === user.id ? { ...item, banned: nextBanned } : item))
+      previous.map((item) => (item._id === user._id ? { ...item, banned: nextBanned } : item))
     )
 
     try {
-      const result = await updateUserBan(user.id, nextBanned)
+      const result = await updateUserBan(user._id, nextBanned)
       console.log("[admin-users] Ban update response:", result)
 
       if (result?.success === false) {
@@ -223,10 +217,7 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
     }
   }
 
-  /**
-   * Permanently remove the user — only runs after the confirm dialog.
-   * Calls the backend DELETE /users/:id route.
-   */
+
   const handleDelete = async () => {
     if (!userToDelete) return
 
@@ -234,11 +225,11 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
 
     console.log(`[admin-users] Deleting user: ${userBeingDeleted.email}`)
 
-    setUsers((previous) => previous.filter((item) => item.id !== userBeingDeleted.id))
+    setUsers((previous) => previous.filter((item) => item._id !== userBeingDeleted._id))
     setUserToDelete(null)
 
     try {
-      const result = await deleteUser(userBeingDeleted.id)
+      const result = await deleteUser(userBeingDeleted._id)
       console.log("[admin-users] Delete response:", result)
 
       if (result?.success === false) {
@@ -308,7 +299,7 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
   }
 
   /** True for the signed-in admin's own row. */
-  const isSelf = (user: AdminUser) => user.id === myId
+  const isSelf = (user: AdminUser) => user._id === myId
 
   /** The Suspend/Activate + Delete buttons, reused by the table and mobile cards. */
   const RowActions = ({ user }: { user: AdminUser }) => {
@@ -464,7 +455,7 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
-                  <TableRow key={user.id} className="border-border/60 hover:bg-muted/40">
+                  <TableRow key={user._id} className="border-border/60 hover:bg-muted/40">
                     {/* Avatar + name */}
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -511,7 +502,7 @@ export function UserManagement({ initialUsers }: { initialUsers: AdminUser[] | n
           {/* ── Mobile: one card per user ── */}
           <div className="mt-4 space-y-3 md:hidden">
             {filteredUsers.map((user) => (
-              <div key={user.id} className="rounded-2xl border border-border bg-card p-4">
+              <div key={user._id} className="rounded-2xl border border-border bg-card p-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="size-10">
                     <AvatarImage src={user.image ?? undefined} alt={user.name} />

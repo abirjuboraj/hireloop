@@ -20,6 +20,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -30,6 +31,7 @@ import { Button } from "@/components/ui/button"
 import { signOut, useSession } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
 import { resolveUserRole, type MenuItem, type UserRole } from "@/lib/types"
+import { sidebarPublicLinks } from "@/lib/navigation"
 
 const menuItemsByRole: Record<UserRole, MenuItem[]> = {
   seeker: [
@@ -91,33 +93,29 @@ export default function DashboardSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {menuItems.map((item) => {
-              const isActive = item.url === activeUrl
+            {menuItems.map((item) => (
+              <SidebarLinkItem
+                key={item.url}
+                item={item}
+                isActive={item.url === activeUrl}
+              />
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
 
-              return (
-                <SidebarMenuItem key={item.url} className="relative">
-                  {/* Brand accent bar */}
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "absolute top-1/2 left-0 h-4 w-[3px] -translate-y-1/2 rounded-full bg-brand transition-opacity duration-200",
-                      isActive ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  <SidebarMenuButton
-                    isActive={isActive}
-                    tooltip={item.name}
-                    render={<Link href={item.url} />}
-                    className={cn(
-                      isActive &&
-                        "hover:bg-brand/20 data-active:bg-brand/15 data-active:text-foreground [&>svg]:text-brand"
-                    )}
-                  >
-                    <item.icon />
-                    <span>{item.name}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )
+        {/* Public pages — same links as the top navbar, available to every role */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs text-muted-foreground">
+            Explore
+          </SidebarGroupLabel>
+          <SidebarMenu>
+            {sidebarPublicLinks.map((link) => {
+              const isActive =
+                link.url === "/"
+                  ? pathname === "/"
+                  : pathname === link.url || pathname.startsWith(link.url + "/")
+
+              return <SidebarLinkItem key={link.url} item={link} isActive={isActive} />
             })}
           </SidebarMenu>
         </SidebarGroup>
@@ -136,6 +134,40 @@ export default function DashboardSidebar() {
         </Button>
       </SidebarFooter>
     </Sidebar>
+  )
+}
+
+/** One sidebar link with the brand accent bar shown while active. */
+function SidebarLinkItem({
+  item,
+  isActive,
+}: {
+  item: MenuItem
+  isActive: boolean
+}) {
+  return (
+    <SidebarMenuItem className="relative">
+      {/* Brand accent bar */}
+      <span
+        aria-hidden="true"
+        className={cn(
+          "absolute top-1/2 left-0 h-4 w-0.75 -translate-y-1/2 rounded-full bg-brand transition-opacity duration-200",
+          isActive ? "opacity-100" : "opacity-0"
+        )}
+      />
+      <SidebarMenuButton
+        isActive={isActive}
+        tooltip={item.name}
+        render={<Link href={item.url} />}
+        className={cn(
+          isActive &&
+            "hover:bg-brand/20 data-active:bg-brand/15 data-active:text-foreground [&>svg]:text-brand"
+        )}
+      >
+        <item.icon />
+        <span>{item.name}</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   )
 }
 

@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, LogOut, Menu, User as UserIcon } from "lucide-react"
+import { LayoutDashboard, LogOut, Menu } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -25,12 +25,7 @@ import {
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { signOut, useSession } from "@/lib/auth-client"
-
-const navLinks = [
-  { href: "/browse-jobs", label: "Browse Jobs" },
-  { href: "/company", label: "Company" },
-  { href: "/pricing", label: "Pricing" },
-]
+import { navLinks } from "@/lib/navigation"
 
 export function Navbar() {
   const pathname = usePathname()
