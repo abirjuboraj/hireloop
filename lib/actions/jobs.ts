@@ -1,27 +1,26 @@
-import { JobForm } from "../types";
-import { authClient } from "@/lib/auth-client"
+'use server'
 
-export const AUTH_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+import { AUTH_URL } from "../config";
+import { getSession, protectedMutation } from "../core/server";
+import { JobForm } from "../types";
 
 export const createJob = async( data: JobForm) => {
     try {
   
-        const { data: session } = await authClient.getSession()
+        const session = await getSession()
         const user = session?.user
 
-        const res = await fetch(`${AUTH_URL}/jobs`,{
-            method: "POST",
-            headers: {
-                "Content-type": "application/json",
-            },
-            body: JSON.stringify({
+        const api = `${AUTH_URL}/jobs`;
+
+        const jobData = {
                 ...data,
                 recruiterId: user?.id ?? null,
                 recruiterEmail: user?.email ?? null,
-            }),
-        });
+            }
 
-        return res.json();
+        const res = await protectedMutation(api, "POST", jobData )
+
+        return res;
     } catch (error) {
         console.log("Error creating job:", error);
     }

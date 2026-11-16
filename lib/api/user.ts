@@ -1,4 +1,5 @@
-import { AUTH_URL } from "../actions/jobs"
+import { AUTH_URL } from "../config"
+
 
 
 export type UserPlan = {

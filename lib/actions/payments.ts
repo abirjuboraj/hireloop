@@ -1,4 +1,5 @@
-import { AUTH_URL } from "./jobs"
+import { AUTH_URL } from "../config";
+
 
 
 export const checkoutVerify = async(sessionId: string) => {

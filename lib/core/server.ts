@@ -37,6 +37,10 @@ export const authFetch = async(api: string)=> {
         throw new Error(errorData?.message ?? `Request failed with status ${res.status}`);
     }
 
+    if(res.status === 401 || res.status === 403) {
+        redirect("/unauthorized");
+    }
+
     return res.json();
 }
 
@@ -52,6 +56,10 @@ export const protectedMutation = async(api: string, method: string, data?:unknow
             },
         body: data? JSON.stringify(data) : null
     })
+
+    if(res.status === 401 || res.status === 403) {
+        redirect("/unauthorized");
+    }
 
     return res.json();
 }

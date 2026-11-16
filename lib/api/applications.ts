@@ -1,6 +1,7 @@
 'use server'
 
-import { AUTH_URL } from "../actions/jobs"
+
+import { AUTH_URL } from "../config";
 import { authFetch} from "../core/server";
 
 

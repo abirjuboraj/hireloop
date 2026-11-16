@@ -1,8 +1,9 @@
 'use server'
 
-import { AUTH_URL } from "./jobs"
+
 import { ApplicationPayload, ApplicationStatus } from "../types"
 import { getSession, protectedMutation } from "../core/server"
+import { AUTH_URL } from "../config"
 
 export async function applyToJob(data: ApplicationPayload) {
   try {
